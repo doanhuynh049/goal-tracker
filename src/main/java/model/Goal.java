@@ -31,7 +31,11 @@ public class Goal {
         this.tasks = new ArrayList<>();
     }
 
+    // Add a task to this goal
     public void addTask(Task task) {
+        if (tasks == null) {
+            tasks = new ArrayList<>();
+        }
         tasks.add(task);
     }
 
@@ -52,6 +56,7 @@ public class Goal {
         return title;
     }
 
+    // Get all tasks for this goal
     public List<Task> getTasks() {
         return tasks;
     }

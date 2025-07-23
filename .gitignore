@@ -1,0 +1,24 @@
+# Java/Gradle
+/build/
+/out/
+/.gradle/
+*.iml
+.gradle
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.tmp
+*.swp
+.DS_Store
+.idea/
+*.ipr
+*.iws
+*.bak
+*.orig
+*.rej
+# VSCode
+.vscode/
+# OS
+Thumbs.db
