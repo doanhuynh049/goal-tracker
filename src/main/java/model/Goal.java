@@ -22,6 +22,15 @@ public class Goal {
         this.tasks = new ArrayList<>();
     }
 
+    public Goal(String title, GoalType type, LocalDate targetDate) {
+        this.id = UUID.randomUUID();
+        this.title = title;
+        this.description = "";
+        this.type = type;
+        this.targetDate = targetDate;
+        this.tasks = new ArrayList<>();
+    }
+
     public void addTask(Task task) {
         tasks.add(task);
     }
@@ -49,5 +58,13 @@ public class Goal {
 
     public UUID getId() {
         return id;
+    }
+
+    public GoalType getType() {
+        return type;
+    }
+
+    public LocalDate getTargetDate() {
+        return targetDate;
     }
 }

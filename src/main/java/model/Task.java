@@ -44,4 +44,22 @@ public class Task {
     public LocalDate getDueDate() {
         return dueDate;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    // New constructor for Excel loading
+    public Task(UUID id, String description, LocalDate dueDate, Priority priority, boolean completed) {
+        this.id = id;
+        this.title = "";
+        this.description = description;
+        this.dueDate = dueDate;
+        this.priority = priority;
+        this.completed = completed;
+    }
 }
