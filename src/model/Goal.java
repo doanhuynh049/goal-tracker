@@ -38,4 +38,16 @@ public class Goal {
         long completedTasks = tasks.stream().filter(Task::isCompleted).count();
         return (double) completedTasks / tasks.size() * 100;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public UUID getId() {
+        return id;
+    }
 }
