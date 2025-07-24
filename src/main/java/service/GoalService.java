@@ -36,6 +36,11 @@ public class GoalService {
         }
     }
 
+    public void markTaskCompleted(String taskIdStr) {
+        UUID taskId = UUID.fromString(taskIdStr);
+        markTaskCompleted(taskId);
+    }
+
     public List<Task> filterTasks(UUID goalId, Predicate<Task> filter) {
         for (Goal goal : goals) {
             if (goal.getId().equals(goalId)) {
@@ -58,5 +63,35 @@ public class GoalService {
 
     public List<Goal> getAllGoals() {
         return goals;
+    }
+
+    // Find a goal by its title
+    public Goal getGoalByTitle(String title) {
+        for (Goal goal : goals) {
+            if (goal.getTitle().equalsIgnoreCase(title)) {
+                return goal;
+            }
+        }
+        return null;
+    }
+
+    // Save all goals to Excel file
+    public void saveGoalsToFile() {
+        try {
+            util.FileUtil.saveGoalsAndTasks(goals);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Load all goals from Excel file
+    public void loadGoalsFromFile() {
+        try {
+            List<Goal> loaded = util.FileUtil.loadGoalsAndTasks();
+            goals.clear();
+            goals.addAll(loaded);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

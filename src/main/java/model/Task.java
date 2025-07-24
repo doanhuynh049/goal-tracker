@@ -10,6 +10,7 @@ public class Task {
     private Priority priority;
     private boolean completed;
     private LocalDate dueDate;
+    private java.time.LocalDate completedDate;
     public enum Priority {
         LOW,
         MEDIUM,
@@ -61,5 +62,34 @@ public class Task {
         this.dueDate = dueDate;
         this.priority = priority;
         this.completed = completed;
+    }
+
+    // New constructor for full task info
+    public Task(String title, String description, LocalDate dueDate, Priority priority, boolean completed) {
+        this.id = UUID.randomUUID();
+        this.title = title;
+        this.description = description;
+        this.dueDate = dueDate;
+        this.priority = priority;
+        this.completed = completed;
+    }
+
+    // Add setters for editable fields
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+        if (completed) {
+            this.completedDate = java.time.LocalDate.now();
+        } else {
+            this.completedDate = null;
+        }
+    }
+    public java.time.LocalDate getCompletedDate() {
+        return completedDate;
+    }
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 }

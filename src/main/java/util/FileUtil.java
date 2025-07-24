@@ -71,48 +71,74 @@ public class FileUtil {
         List<Goal> goals = new ArrayList<>();
         FileInputStream file = new FileInputStream(FILE_PATH);
         Workbook workbook = new XSSFWorkbook(file);
-        
-        // Read Goals sheet
-        Sheet goalsSheet = workbook.getSheet("Goals");
-        Iterator<Row> goalIterator = goalsSheet.iterator();
-        goalIterator.next();  // Skip header row
+        try {
+            // Read Goals sheet
+            Sheet goalsSheet = workbook.getSheet("Goals");
+            Iterator<Row> goalIterator = goalsSheet.iterator();
+            if (goalIterator.hasNext()) goalIterator.next();  // Skip header row
 
-        while (goalIterator.hasNext()) {
-            Row row = goalIterator.next();
-            String goalId = row.getCell(0).getStringCellValue();
-            String goalTitle = row.getCell(1).getStringCellValue();
-            GoalType goalType = GoalType.valueOf(row.getCell(2).getStringCellValue());
-            LocalDate targetDate = LocalDate.parse(row.getCell(3).getStringCellValue());
+            while (goalIterator.hasNext()) {
+                Row row = goalIterator.next();
+                if (row == null) continue;
+                try {
+                    Cell idCell = row.getCell(0);
+                    Cell titleCell = row.getCell(1);
+                    Cell typeCell = row.getCell(2);
+                    Cell dateCell = row.getCell(3);
+                    if (idCell == null || titleCell == null || typeCell == null || dateCell == null) continue;
+                    String goalId = idCell.getStringCellValue();
+                    String goalTitle = titleCell.getStringCellValue();
+                    GoalType goalType = GoalType.valueOf(typeCell.getStringCellValue());
+                    LocalDate targetDate = LocalDate.parse(dateCell.getStringCellValue());
+                    Goal goal = new Goal(goalTitle, goalType, targetDate);
+                    goals.add(goal);
+                } catch (Exception e) {
+                    // Log and skip malformed row
+                    System.err.println("Skipping malformed goal row: " + e.getMessage());
+                }
+            }
 
-            Goal goal = new Goal(goalTitle, goalType, targetDate);
-            goals.add(goal);
+            // Read Tasks sheet
+            Sheet tasksSheet = workbook.getSheet("Tasks");
+            Iterator<Row> taskIterator = tasksSheet.iterator();
+            if (taskIterator.hasNext()) taskIterator.next();  // Skip header row
+
+            while (taskIterator.hasNext()) {
+                Row row = taskIterator.next();
+                if (row == null) continue;
+                try {
+                    Cell idCell = row.getCell(0);
+                    Cell goalTitleCell = row.getCell(1);
+                    Cell descCell = row.getCell(2);
+                    Cell priorityCell = row.getCell(3);
+                    Cell dueDateCell = row.getCell(4);
+                    Cell completedCell = row.getCell(5);
+                    if (idCell == null || goalTitleCell == null || descCell == null || priorityCell == null || dueDateCell == null || completedCell == null) continue;
+                    String taskId = idCell.getStringCellValue();
+                    String goalTitle = goalTitleCell.getStringCellValue();
+                    String taskDescription = descCell.getStringCellValue();
+                    Task.Priority taskPriority = Task.Priority.valueOf(priorityCell.getStringCellValue());
+                    LocalDate taskDueDate = LocalDate.parse(dueDateCell.getStringCellValue());
+                    boolean taskCompleted = completedCell.getBooleanCellValue();
+                    // Find the goal object associated with this task
+                    Goal associatedGoal = goals.stream()
+                            .filter(goal -> goal.getTitle().equals(goalTitle))
+                            .findFirst()
+                            .orElse(null);
+                    if (associatedGoal == null) {
+                        System.err.println("Skipping task: Goal not found: " + goalTitle);
+                        continue;
+                    }
+                    Task task = new Task(UUID.fromString(taskId), taskDescription, taskDueDate, taskPriority, taskCompleted);
+                    associatedGoal.addTask(task);
+                } catch (Exception e) {
+                    // Log and skip malformed row
+                    System.err.println("Skipping malformed task row: " + e.getMessage());
+                }
+            }
+        } finally {
+            workbook.close();
         }
-
-        // Read Tasks sheet
-        Sheet tasksSheet = workbook.getSheet("Tasks");
-        Iterator<Row> taskIterator = tasksSheet.iterator();
-        taskIterator.next();  // Skip header row
-
-        while (taskIterator.hasNext()) {
-            Row row = taskIterator.next();
-            String taskId = row.getCell(0).getStringCellValue();
-            String goalTitle = row.getCell(1).getStringCellValue();
-            String taskDescription = row.getCell(2).getStringCellValue();
-            Task.Priority taskPriority = Task.Priority.valueOf(row.getCell(3).getStringCellValue());
-            LocalDate taskDueDate = LocalDate.parse(row.getCell(4).getStringCellValue());
-            boolean taskCompleted = row.getCell(5).getBooleanCellValue();
-
-            // Find the goal object associated with this task
-            Goal associatedGoal = goals.stream()
-                    .filter(goal -> goal.getTitle().equals(goalTitle))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Goal not found: " + goalTitle));
-
-            Task task = new Task(UUID.fromString(taskId), taskDescription, taskDueDate, taskPriority, taskCompleted);
-            associatedGoal.addTask(task);
-        }
-
-        workbook.close();
         return goals;
     }
 }

@@ -1,6 +1,12 @@
 plugins {
     id 'java'
     id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+javafx {
+    version = "21.0.1"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
 repositories {
@@ -10,6 +16,8 @@ repositories {
 dependencies {
     implementation 'org.apache.poi:poi:5.2.5'
     implementation 'org.apache.poi:poi-ooxml:5.2.5'
+    implementation 'org.openjfx:javafx-controls:21.0.1'
+    implementation 'org.openjfx:javafx-fxml:21.0.1'
     testImplementation 'junit:junit:4.13.2'
 }
 
@@ -18,5 +26,5 @@ test {
 }
 
 application {
-    mainClass = 'Main'
+    mainClass = 'MainView'
 }

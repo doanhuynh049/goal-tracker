@@ -72,4 +72,11 @@ public class Goal {
     public LocalDate getTargetDate() {
         return targetDate;
     }
+
+    public void setType(GoalType type) {
+        this.type = type;
+    }
+    public void setTargetDate(LocalDate targetDate) {
+        this.targetDate = targetDate;
+    }
 }
