@@ -1,0 +1,44 @@
+/* Modern UI styles for MainView */
+
+.root {
+    -fx-font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+}
+
+.button {
+    -fx-background-color: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 8px;
+    -fx-padding: 12 32;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(67,233,123,0.15), 8, 0.2, 0, 2);
+    -fx-border-width: 0;
+    -fx-border-radius: 8px;
+    -fx-transition: all 0.2s;
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(90deg, #38f9d7 0%, #43e97b 100%);
+    -fx-effect: dropshadow(gaussian, rgba(67,233,123,0.25), 16, 0.3, 0, 4);
+}
+
+.label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d2d2d;
+    -fx-padding: 0 0 24 0;
+}
+
+.stack-pane {
+    -fx-background-radius: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(44,62,80,0.12), 24, 0.2, 0, 8);
+}
+
+.tooltip {
+    -fx-background-color: #222;
+    -fx-text-fill: #fff;
+    -fx-font-size: 13px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8 16;
+}
