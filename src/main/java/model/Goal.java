@@ -12,6 +12,8 @@ public class Goal {
     private boolean completed;
     private LocalDate targetDate;
     private List<Task> tasks;
+    private String notes = "";
+    private java.time.LocalDateTime lastUpdated;
 
     public Goal(String title, String description, GoalType type, LocalDate targetDate, String id) {
         this.id = UUID.randomUUID();
@@ -78,5 +80,26 @@ public class Goal {
     }
     public void setTargetDate(LocalDate targetDate) {
         this.targetDate = targetDate;
+    }
+    public String getNotes() {
+        return notes;
+    }
+    public void setNotes(String notes) {
+        this.notes = notes;
+        updateLastModified();
+    }
+    public void setTitle(String title) {
+        this.title = title;
+        updateLastModified();
+    }
+    public java.time.LocalDateTime getLastUpdated() {
+        return lastUpdated;
+    }
+    public void updateLastModified() {
+        this.lastUpdated = java.time.LocalDateTime.now();
+    }
+    // Optionally: getProgressPercent for UI compatibility
+    public double getProgressPercent() {
+        return getProgress() / 100.0;
     }
 }

@@ -94,4 +94,12 @@ public class GoalService {
             e.printStackTrace();
         }
     }
+
+    public void addGoal(Goal goal) {
+        goals.add(goal);
+    }
+
+    public void deleteGoal(Goal goal) {
+        goals.remove(goal);
+    }
 }

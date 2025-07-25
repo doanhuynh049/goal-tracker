@@ -5,7 +5,7 @@
 }
 
 .button {
-    -fx-background-color: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    -fx-background-color: linear-gradient(to right, #43e97b, #38f9d7);
     -fx-text-fill: white;
     -fx-font-size: 16px;
     -fx-font-weight: 600;
@@ -15,11 +15,10 @@
     -fx-effect: dropshadow(gaussian, rgba(67,233,123,0.15), 8, 0.2, 0, 2);
     -fx-border-width: 0;
     -fx-border-radius: 8px;
-    -fx-transition: all 0.2s;
 }
 
 .button:hover {
-    -fx-background-color: linear-gradient(90deg, #38f9d7 0%, #43e97b 100%);
+    -fx-background-color: linear-gradient(to right, #38f9d7, #43e97b);
     -fx-effect: dropshadow(gaussian, rgba(67,233,123,0.25), 16, 0.3, 0, 4);
 }
 
