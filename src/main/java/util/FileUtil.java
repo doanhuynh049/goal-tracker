@@ -1,3 +1,5 @@
+// Replace the existing code in FileUtil.java with this updated version:
+
 package util;
 
 import model.Goal;
@@ -9,7 +11,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.*;
 import java.util.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 public class FileUtil {
     private static final String FILE_PATH = "data/goals_and_tasks.xlsx";
@@ -40,10 +41,12 @@ public class FileUtil {
         Row taskHeaderRow = tasksSheet.createRow(0);
         taskHeaderRow.createCell(0).setCellValue("Task ID");
         taskHeaderRow.createCell(1).setCellValue("Goal Title");
-        taskHeaderRow.createCell(2).setCellValue("Task Description");
-        taskHeaderRow.createCell(3).setCellValue("Task Priority");
-        taskHeaderRow.createCell(4).setCellValue("Task Due Date");
-        taskHeaderRow.createCell(5).setCellValue("Task Completed");
+        taskHeaderRow.createCell(2).setCellValue("Task Title");
+        taskHeaderRow.createCell(3).setCellValue("Task Description");
+        taskHeaderRow.createCell(4).setCellValue("Task Priority");
+        taskHeaderRow.createCell(5).setCellValue("Task Due Date");
+        taskHeaderRow.createCell(6).setCellValue("Task Status");
+        taskHeaderRow.createCell(7).setCellValue("Task Completed");
 
         int taskRowNum = 1;
         for (Goal goal : goals) {
@@ -51,14 +54,16 @@ public class FileUtil {
                 Row row = tasksSheet.createRow(taskRowNum++);
                 row.createCell(0).setCellValue(task.getId().toString());
                 row.createCell(1).setCellValue(goal.getTitle());  // Goal Title
-                row.createCell(2).setCellValue(task.getDescription());
-                row.createCell(3).setCellValue(task.getPriority().toString());
-                row.createCell(4).setCellValue(task.getDueDate().toString());
-                row.createCell(5).setCellValue(task.isCompleted());
+                row.createCell(2).setCellValue(task.getTitle());  // Task Title
+                row.createCell(3).setCellValue(task.getDescription());
+                row.createCell(4).setCellValue(task.getPriority().toString());
+                row.createCell(5).setCellValue(task.getDueDate().toString());
+                row.createCell(6).setCellValue(task.getStatus() != null ? task.getStatus().toString() : "To Do");
+                row.createCell(7).setCellValue(task.isCompleted());
             }
         }
 
-        // Write the Excel file to disk
+        // Write to file
         try (FileOutputStream fileOut = new FileOutputStream(FILE_PATH)) {
             workbook.write(fileOut);
         } finally {
@@ -72,67 +77,67 @@ public class FileUtil {
         FileInputStream file = new FileInputStream(FILE_PATH);
         Workbook workbook = new XSSFWorkbook(file);
         try {
-            // Read Goals sheet
+            // Read Goals
             Sheet goalsSheet = workbook.getSheet("Goals");
             Iterator<Row> goalIterator = goalsSheet.iterator();
-            if (goalIterator.hasNext()) goalIterator.next();  // Skip header row
+            if (goalIterator.hasNext()) goalIterator.next();  // Skip header
 
             while (goalIterator.hasNext()) {
                 Row row = goalIterator.next();
                 if (row == null) continue;
                 try {
-                    Cell idCell = row.getCell(0);
-                    Cell titleCell = row.getCell(1);
-                    Cell typeCell = row.getCell(2);
-                    Cell dateCell = row.getCell(3);
-                    if (idCell == null || titleCell == null || typeCell == null || dateCell == null) continue;
-                    String goalId = idCell.getStringCellValue();
-                    String goalTitle = titleCell.getStringCellValue();
-                    GoalType goalType = GoalType.valueOf(typeCell.getStringCellValue());
-                    LocalDate targetDate = LocalDate.parse(dateCell.getStringCellValue());
+                    String goalId = row.getCell(0).getStringCellValue();
+                    String goalTitle = row.getCell(1).getStringCellValue();
+                    GoalType goalType = GoalType.valueOf(row.getCell(2).getStringCellValue());
+                    LocalDate targetDate = LocalDate.parse(row.getCell(3).getStringCellValue());
                     Goal goal = new Goal(goalTitle, goalType, targetDate);
                     goals.add(goal);
                 } catch (Exception e) {
-                    // Log and skip malformed row
                     System.err.println("Skipping malformed goal row: " + e.getMessage());
                 }
             }
 
-            // Read Tasks sheet
+            // Read Tasks
             Sheet tasksSheet = workbook.getSheet("Tasks");
             Iterator<Row> taskIterator = tasksSheet.iterator();
-            if (taskIterator.hasNext()) taskIterator.next();  // Skip header row
+            if (taskIterator.hasNext()) taskIterator.next();  // Skip header
 
             while (taskIterator.hasNext()) {
                 Row row = taskIterator.next();
                 if (row == null) continue;
                 try {
-                    Cell idCell = row.getCell(0);
-                    Cell goalTitleCell = row.getCell(1);
-                    Cell descCell = row.getCell(2);
-                    Cell priorityCell = row.getCell(3);
-                    Cell dueDateCell = row.getCell(4);
-                    Cell completedCell = row.getCell(5);
-                    if (idCell == null || goalTitleCell == null || descCell == null || priorityCell == null || dueDateCell == null || completedCell == null) continue;
-                    String taskId = idCell.getStringCellValue();
-                    String goalTitle = goalTitleCell.getStringCellValue();
-                    String taskDescription = descCell.getStringCellValue();
-                    Task.Priority taskPriority = Task.Priority.valueOf(priorityCell.getStringCellValue());
-                    LocalDate taskDueDate = LocalDate.parse(dueDateCell.getStringCellValue());
-                    boolean taskCompleted = completedCell.getBooleanCellValue();
-                    // Find the goal object associated with this task
+                    String taskId = row.getCell(0).getStringCellValue();
+                    String goalTitle = row.getCell(1).getStringCellValue();
+                    String taskTitle = row.getCell(2).getStringCellValue();
+                    String taskDescription = row.getCell(3).getStringCellValue();
+                    Task.Priority taskPriority = Task.Priority.valueOf(row.getCell(4).getStringCellValue());
+                    LocalDate taskDueDate = LocalDate.parse(row.getCell(5).getStringCellValue());
+                    String taskStatusStr = row.getCell(6).getStringCellValue();
+                    Task.TaskStatus taskStatus = Task.TaskStatus.fromString(taskStatusStr);
+                    boolean taskCompleted = row.getCell(7).getBooleanCellValue();
+
                     Goal associatedGoal = goals.stream()
                             .filter(goal -> goal.getTitle().equals(goalTitle))
                             .findFirst()
                             .orElse(null);
+
                     if (associatedGoal == null) {
                         System.err.println("Skipping task: Goal not found: " + goalTitle);
                         continue;
                     }
-                    Task task = new Task(UUID.fromString(taskId), taskDescription, taskDueDate, taskPriority, taskCompleted);
+
+                    // Use the correct constructor: Task(UUID id, String description, LocalDate dueDate, Priority priority, boolean completed, TaskStatus status)
+                    Task task = new Task(UUID.fromString(taskId), taskDescription, taskDueDate, taskPriority, taskCompleted, taskStatus);
+                    // Set the title field if available (since the constructor does not set it)
+                    if (taskTitle != null && !taskTitle.isEmpty()) {
+                        try {
+                            java.lang.reflect.Field titleField = Task.class.getDeclaredField("title");
+                            titleField.setAccessible(true);
+                            titleField.set(task, taskTitle);
+                        } catch (Exception ignore) {}
+                    }
                     associatedGoal.addTask(task);
                 } catch (Exception e) {
-                    // Log and skip malformed row
                     System.err.println("Skipping malformed task row: " + e.getMessage());
                 }
             }
