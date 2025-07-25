@@ -18,6 +18,26 @@ public class Task {
         URGENT
     }
 
+    public enum TaskStatus {
+        TO_DO("To Do"),
+        IN_PROGRESS("In Progress"),
+        DONE("Done");
+
+        private final String displayName;
+        TaskStatus(String displayName) { this.displayName = displayName; }
+        @Override public String toString() { return displayName; }
+        public static TaskStatus fromString(String value) {
+            for (TaskStatus s : values()) {
+                if (s.displayName.equalsIgnoreCase(value) || s.name().replace('_',' ').equalsIgnoreCase(value)) {
+                    return s;
+                }
+            }
+            return TO_DO; // default
+        }
+    }
+
+    private TaskStatus status = TaskStatus.TO_DO;
+
     // New constructor
     public Task(String title, String description, LocalDate dueDate) {
         this.id = UUID.randomUUID();
@@ -26,6 +46,7 @@ public class Task {
         this.dueDate = dueDate;
         this.completed = false;
         this.priority = Priority.MEDIUM;
+        this.status = TaskStatus.TO_DO;
     }
 
     public String getTitle() {
@@ -54,24 +75,30 @@ public class Task {
         return priority;
     }
 
+    public TaskStatus getStatus() {
+        return status;
+    }
+
     // New constructor for Excel loading
-    public Task(UUID id, String description, LocalDate dueDate, Priority priority, boolean completed) {
+    public Task(UUID id, String description, LocalDate dueDate, Priority priority, boolean completed, TaskStatus status) {
         this.id = id;
         this.title = "";
         this.description = description;
         this.dueDate = dueDate;
         this.priority = priority;
         this.completed = completed;
+        this.status = status != null ? status : TaskStatus.TO_DO;
     }
 
     // New constructor for full task info
-    public Task(String title, String description, LocalDate dueDate, Priority priority, boolean completed) {
+    public Task(String title, String description, LocalDate dueDate, Priority priority, boolean completed, TaskStatus status) {
         this.id = UUID.randomUUID();
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
         this.priority = priority;
         this.completed = completed;
+        this.status = status != null ? status : TaskStatus.TO_DO;
     }
 
     // Add setters for editable fields
@@ -91,5 +118,11 @@ public class Task {
     }
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+    public void setStatus(TaskStatus status) {
+        this.status = status;
+    }
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

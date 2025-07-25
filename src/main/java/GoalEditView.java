@@ -88,7 +88,7 @@ public class GoalEditView {
         bottomBar.setPadding(new Insets(10, 0, 0, 0));
         mainLayout.setBottom(bottomBar);
 
-        Scene goalEditScene = new Scene(mainLayout, 500, 400);
+        Scene goalEditScene = new Scene(mainLayout, 900, 600);
         primaryStage.setTitle(goalToEdit == null ? "Create Goal" : "Edit Goal");
         primaryStage.setScene(goalEditScene);
         primaryStage.show();

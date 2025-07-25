@@ -85,7 +85,8 @@ public class AddTaskView {
                 showInfoDialog("Missing Data", "Please fill in all required fields.");
                 return;
             }
-            Task task = new Task(taskTitle, taskDesc, dueDate, priority, false);
+            Task.TaskStatus status = Task.TaskStatus.TO_DO; // Default for new tasks
+            Task task = new Task(taskTitle, taskDesc, dueDate, priority, false, status);
             service.addTaskToGoal(selectedGoal.getId(), task);
             showInfoDialog("Task Added", "Task added successfully!");
             // Optionally clear fields or go back
