@@ -1,10 +1,10 @@
 package model;
 
 public enum GoalType {
-    LONG_TERM,
-    SHORT_TERM,
-    YEARLY,
-    MONTHLY,
+    DAILY,
     WEEKLY,
-    DAILY
+    MONTHLY,
+    YEARLY,
+    SHORT_TERM,
+    LONG_TERM
 }

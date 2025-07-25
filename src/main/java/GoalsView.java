@@ -25,6 +25,7 @@ public class GoalsView {
     public void buildScreen(Stage primaryStage) {
         BorderPane mainLayout = new BorderPane();
         mainLayout.setPadding(new Insets(20));
+        mainLayout.setStyle("-fx-background-color: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);");
 
         VBox leftColumn = createLeftColumn();
         VBox rightColumn = createRightColumn();
@@ -62,14 +63,14 @@ public class GoalsView {
         ScrollPane leftScrollPane = new ScrollPane(leftPanel);
         leftScrollPane.setFitToWidth(true);
         leftScrollPane.setFitToHeight(true);
-        leftScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        leftScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         leftScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         leftScrollPane.setPrefWidth(300);
 
         ScrollPane rightScrollPane = new ScrollPane(rightPanel);
         rightScrollPane.setFitToWidth(true);
         rightScrollPane.setFitToHeight(true);
-        rightScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        rightScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         rightScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         // Use an HBox to place left and right scroll panes side by side
@@ -89,27 +90,116 @@ public class GoalsView {
     public VBox createLeftColumn() {
         leftColumn = new VBox(10);
         leftColumn.setPadding(new Insets(10));
-        ScrollPane leftScroll = new ScrollPane(leftColumn);
-        leftScroll.setFitToHeight(true);
-        leftScroll.setFitToWidth(true);
-        leftScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+
         List<Goal> allGoals = service.getAllGoals();
+
+        // Sort goals by type, then by due date if type is the same
+        allGoals.sort((g1, g2) -> {
+            int typeCompare = g1.getType().compareTo(g2.getType());
+            if (typeCompare != 0) return typeCompare;
+            if (g1.getTargetDate() != null && g2.getTargetDate() != null) {
+                return g1.getTargetDate().compareTo(g2.getTargetDate());
+            } else if (g1.getTargetDate() == null) {
+                return 1;
+            } else if (g2.getTargetDate() == null) {
+                return -1;
+            }
+            return 0;
+        });
+
         for (int i = 0; i < Math.min(allGoals.size(), 10); i++) {
             Goal goal = allGoals.get(i);
-            VBox goalContainer = new VBox(5);
+            VBox goalContainer = new VBox(6);
             goalContainer.setPadding(new Insets(10));
-            goalContainer.setStyle("-fx-border-color: #ccc; -fx-border-radius: 5px; -fx-background-color: #f9f9f9;");
+            goalContainer.setStyle(
+                "-fx-background-color: white;" +
+                "-fx-border-color: #e0e0e0;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
+            );
+
+            // Hover effect
+            goalContainer.setOnMouseEntered(e -> goalContainer.setStyle(
+                "-fx-background-color: #f0f8ff;" +
+                "-fx-border-color: #0078D7;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0.2, 0, 2);"
+            ));
+            goalContainer.setOnMouseExited(e -> goalContainer.setStyle(
+                "-fx-background-color: white;" +
+                "-fx-border-color: #e0e0e0;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
+            ));
+
+            // Title
             Text goalTitleText = new Text(goal.getTitle());
             goalTitleText.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            goalTitleText.setWrappingWidth(180);
+            Tooltip.install(goalTitleText, new Tooltip(goal.getTitle()));
+
+            // Goal type badge
+            Label typeLabel = new Label(goal.getType().toString().replace("_", " "));
+            typeLabel.setStyle(
+                "-fx-background-color: #e0e0e0; " +
+                "-fx-text-fill: #333;" +
+                "-fx-font-size: 10px;" +
+                "-fx-padding: 2 6 2 6;" +
+                "-fx-background-radius: 5px;"
+            );
+            switch (goal.getType()) {
+                case WEEKLY:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #e1f5fe;");
+                    break;
+                case MONTHLY:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fce4ec;");
+                    break;
+                case YEARLY:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ede7f6;");
+                    break;
+                case DAILY:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fffde7;");
+                    break;
+                case SHORT_TERM:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ffe0b2;");
+                    break;
+                case LONG_TERM:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #d1c4e9;");
+                    break;
+            }
+
+            // Progress
             ProgressBar progressBar = new ProgressBar(goal.getProgress() / 100.0);
             progressBar.setPrefWidth(200);
+
             Text progressText = new Text(String.format("%.2f%%", goal.getProgress()));
             progressText.setStyle("-fx-font-size: 12px;");
-            goalContainer.getChildren().addAll(goalTitleText, progressBar, progressText);
+
+            Text dueDate = new Text("Due: " + goal.getTargetDate());
+            dueDate.setStyle("-fx-font-size: 11px; -fx-fill: #888;");
+
+            Tooltip.install(goalTitleText, new Tooltip(goal.getTitle()));
+            Tooltip.install(typeLabel, new Tooltip(typeLabel.getText()));
+
+            VBox titleBox = new VBox(2, goalTitleText, typeLabel);
+            goalContainer.getChildren().addAll(titleBox, progressBar, progressText, dueDate);
+
+
             goalContainer.setOnMouseClicked(event -> updateRightColumn(goal));
             leftColumn.getChildren().add(goalContainer);
         }
-        return leftColumn;
+
+        ScrollPane leftScroll = new ScrollPane(leftColumn);
+        leftScroll.setFitToHeight(true);
+        leftScroll.setFitToWidth(true);
+        leftScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        leftScroll.setPrefWidth(300);
+
+        VBox wrapper = new VBox(leftScroll);
+        return wrapper;
     }
 
     public VBox createRightColumn() {
@@ -304,27 +394,106 @@ public class GoalsView {
         }
     }
 
-    // Add this method to refresh the left column's progress bars and text
     private void updateLeftColumn() {
         if (leftColumn == null) return;
-        List<Goal> allGoals = service.getAllGoals();
+
         leftColumn.getChildren().clear();
+        List<Goal> allGoals = service.getAllGoals();
+
+        // Sort goals by type, then by due date if type is the same
+        allGoals.sort((g1, g2) -> {
+            int typeCompare = g1.getType().compareTo(g2.getType());
+            if (typeCompare != 0) return typeCompare;
+            if (g1.getTargetDate() != null && g2.getTargetDate() != null) {
+                return g1.getTargetDate().compareTo(g2.getTargetDate());
+            } else if (g1.getTargetDate() == null) {
+                return 1;
+            } else if (g2.getTargetDate() == null) {
+                return -1;
+            }
+            return 0;
+        });
+
         for (int i = 0; i < Math.min(allGoals.size(), 10); i++) {
             Goal goal = allGoals.get(i);
-            VBox goalContainer = new VBox(5);
+            VBox goalContainer = new VBox(6);
             goalContainer.setPadding(new Insets(10));
-            goalContainer.setStyle("-fx-border-color: #ccc; -fx-border-radius: 5px; -fx-background-color: #f9f9f9;");
+            goalContainer.setStyle(
+                "-fx-background-color: white;" +
+                "-fx-border-color: #e0e0e0;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
+            );
+
+            // Hover effect
+            goalContainer.setOnMouseEntered(e -> goalContainer.setStyle(
+                "-fx-background-color: #f0f8ff;" +
+                "-fx-border-color: #0078D7;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0.2, 0, 2);"
+            ));
+            goalContainer.setOnMouseExited(e -> goalContainer.setStyle(
+                "-fx-background-color: white;" +
+                "-fx-border-color: #e0e0e0;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
+            ));
+
+            // Title
             Text goalTitleText = new Text(goal.getTitle());
             goalTitleText.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            goalTitleText.setWrappingWidth(180);
+            Tooltip.install(goalTitleText, new Tooltip(goal.getTitle()));
+
+            // Goal type badge
+            Label typeLabel = new Label(goal.getType().toString().replace("_", " "));
+            typeLabel.setStyle(
+                "-fx-background-color: #e0e0e0; " +
+                "-fx-text-fill: #333;" +
+                "-fx-font-size: 10px;" +
+                "-fx-padding: 2 6 2 6;" +
+                "-fx-background-radius: 5px;"
+            );
+            switch (goal.getType()) {
+                case WEEKLY:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #e1f5fe;");
+                    break;
+                case MONTHLY:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fce4ec;");
+                    break;
+                case YEARLY:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ede7f6;");
+                    break;
+                case DAILY:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fffde7;");
+                    break;
+                case SHORT_TERM:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ffe0b2;");
+                    break;
+                case LONG_TERM:
+                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #d1c4e9;");
+                    break;
+            }
+
+            // Progress
             ProgressBar progressBar = new ProgressBar(goal.getProgress() / 100.0);
             progressBar.setPrefWidth(200);
             Text progressText = new Text(String.format("%.2f%%", goal.getProgress()));
             progressText.setStyle("-fx-font-size: 12px;");
-            goalContainer.getChildren().addAll(goalTitleText, progressBar, progressText);
+            Text dueDate = new Text("Due: " + goal.getTargetDate());
+            dueDate.setStyle("-fx-font-size: 11px; -fx-fill: #888;");
+
+            VBox titleBox = new VBox(2, goalTitleText, typeLabel);
+            goalContainer.getChildren().addAll(titleBox, progressBar, progressText, dueDate);
+
             goalContainer.setOnMouseClicked(event -> updateRightColumn(goal));
             leftColumn.getChildren().add(goalContainer);
         }
     }
+
 
     // Helper for status order: IN_PROGRESS(0), TO_DO(1), DONE(2)
     private int getStatusOrder(Task.TaskStatus status) {
