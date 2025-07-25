@@ -249,14 +249,12 @@ public class GoalsView {
             VBox taskContainer = new VBox(10);
             taskContainer.setPadding(new Insets(14));
             String bgColor = getBackgroundColorByStatus(task.getStatus());
-
             taskContainer.setStyle(
                 "-fx-background-color: " + bgColor + "; " +
                 "-fx-border-color: #ccc; " +
                 "-fx-border-radius: 10px; " +
                 "-fx-background-radius: 10px;"
             );
-
             taskContainer.setOnMouseEntered(ev -> taskContainer.setStyle(
                 "-fx-background-color: " + bgColor + "; " +
                 "-fx-border-color: #aaa; " +
@@ -275,13 +273,13 @@ public class GoalsView {
             Text taskTitle = new Text(task.getTitle());
             taskTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-            // Info row: due date, completed, overdue
+            // Info row: start day, due date, completed, overdue
+            String startText = "Start: " + (task.getStartDay() != null ? task.getStartDay() : "-");
             String dueText = "Due: " + (task.getDueDate() != null ? task.getDueDate() : "-");
             boolean isOverdue = task.getDueDate() != null && task.getDueDate().isBefore(LocalDate.now()) && !isTaskDone(task);
             String completedText = isTaskDone(task) ? "Yes" : "No";
             String overdueText = isOverdue ? "  |  OVERDUE" : "";
-
-            Text infoText = new Text(dueText + " | Completed: " + completedText + overdueText);
+            Text infoText = new Text(startText + " | " + dueText + " | Completed: " + completedText + overdueText);
             infoText.setStyle("-fx-font-size: 12px; -fx-fill: #666;");
 
             // Description field
@@ -328,7 +326,15 @@ public class GoalsView {
             ComboBox<Task.TaskStatus> statusCombo = new ComboBox<>();
             statusCombo.getItems().addAll(Task.TaskStatus.values());
             statusCombo.setValue(task.getStatus());
+            boolean beforeStartDay = task.getStartDay() != null && LocalDate.now().isBefore(task.getStartDay());
+            statusCombo.setDisable(beforeStartDay);
+            if (beforeStartDay) {
+                statusCombo.setTooltip(new Tooltip("You can only change status after the start day."));
+            } else {
+                statusCombo.setTooltip(new Tooltip("Change task status."));
+            }
             statusCombo.setOnAction(e -> {
+                if (beforeStartDay) return; // Should not happen, but extra guard
                 Task.TaskStatus newStatus = statusCombo.getValue();
                 task.setStatus(newStatus);
                 // Only set completed true if status is DONE, otherwise false
@@ -337,6 +343,18 @@ public class GoalsView {
                 updateRightColumn(selectedGoal); // refresh UI
                 updateLeftColumn(); // refresh progress bar
             });
+
+            // Start Day Picker
+            DatePicker startDayPicker = new DatePicker(task.getStartDay());
+            startDayPicker.setPromptText("Start Day");
+            startDayPicker.setOnAction(e -> {
+                task.setStartDay(startDayPicker.getValue());
+                service.saveGoalsToFile();
+                updateRightColumn(selectedGoal);
+            });
+            Button startDayBtn = new Button("\uD83D\uDCC5");
+            startDayBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
+            startDayBtn.setOnAction(e -> startDayPicker.show());
 
             // Due Date
             DatePicker duePicker = new DatePicker(task.getDueDate());
@@ -355,7 +373,8 @@ public class GoalsView {
             form.setVgap(10);
             form.addRow(0, new Label("Priority:"), priorityCombo);
             form.addRow(1, new Label("Status:"), statusCombo);
-            form.addRow(2, new Label("Due Date:"), duePicker, calendarBtn);
+            form.addRow(2, new Label("Start Day:"), startDayPicker, startDayBtn);
+            form.addRow(3, new Label("Due Date:"), duePicker, calendarBtn);
 
             // Assemble task block
             taskContainer.getChildren().addAll(taskTitle, infoText, taskDescription, form);

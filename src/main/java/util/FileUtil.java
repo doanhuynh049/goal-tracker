@@ -38,28 +38,31 @@ public class FileUtil {
 
         // Write Tasks sheet
         Sheet tasksSheet = workbook.createSheet("Tasks");
+        // Add Task Start Day column
         Row taskHeaderRow = tasksSheet.createRow(0);
         taskHeaderRow.createCell(0).setCellValue("Task ID");
         taskHeaderRow.createCell(1).setCellValue("Goal Title");
         taskHeaderRow.createCell(2).setCellValue("Task Title");
         taskHeaderRow.createCell(3).setCellValue("Task Description");
         taskHeaderRow.createCell(4).setCellValue("Task Priority");
-        taskHeaderRow.createCell(5).setCellValue("Task Due Date");
-        taskHeaderRow.createCell(6).setCellValue("Task Status");
-        taskHeaderRow.createCell(7).setCellValue("Task Completed");
+        taskHeaderRow.createCell(5).setCellValue("Task Start Day");
+        taskHeaderRow.createCell(6).setCellValue("Task Due Date");
+        taskHeaderRow.createCell(7).setCellValue("Task Status");
+        taskHeaderRow.createCell(8).setCellValue("Task Completed");
 
         int taskRowNum = 1;
         for (Goal goal : goals) {
             for (Task task : goal.getTasks()) {
                 Row row = tasksSheet.createRow(taskRowNum++);
                 row.createCell(0).setCellValue(task.getId().toString());
-                row.createCell(1).setCellValue(goal.getTitle());  // Goal Title
-                row.createCell(2).setCellValue(task.getTitle());  // Task Title
+                row.createCell(1).setCellValue(goal.getTitle());
+                row.createCell(2).setCellValue(task.getTitle());
                 row.createCell(3).setCellValue(task.getDescription());
                 row.createCell(4).setCellValue(task.getPriority().toString());
-                row.createCell(5).setCellValue(task.getDueDate().toString());
-                row.createCell(6).setCellValue(task.getStatus() != null ? task.getStatus().toString() : "To Do");
-                row.createCell(7).setCellValue(task.isCompleted());
+                row.createCell(5).setCellValue(task.getStartDay() != null ? task.getStartDay().toString() : "");
+                row.createCell(6).setCellValue(task.getDueDate() != null ? task.getDueDate().toString() : "");
+                row.createCell(7).setCellValue(task.getStatus() != null ? task.getStatus().toString() : "To Do");
+                row.createCell(8).setCellValue(task.isCompleted());
             }
         }
 
@@ -111,10 +114,16 @@ public class FileUtil {
                     String taskTitle = row.getCell(2).getStringCellValue();
                     String taskDescription = row.getCell(3).getStringCellValue();
                     Task.Priority taskPriority = Task.Priority.valueOf(row.getCell(4).getStringCellValue());
-                    LocalDate taskDueDate = LocalDate.parse(row.getCell(5).getStringCellValue());
-                    String taskStatusStr = row.getCell(6).getStringCellValue();
+                    // Update load logic for start day
+                    String taskStartDayStr = row.getCell(5).getStringCellValue();
+                    LocalDate taskStartDay = null;
+                    if (taskStartDayStr != null && !taskStartDayStr.isEmpty()) {
+                        taskStartDay = LocalDate.parse(taskStartDayStr);
+                    }
+                    LocalDate taskDueDate = LocalDate.parse(row.getCell(6).getStringCellValue());
+                    String taskStatusStr = row.getCell(7).getStringCellValue();
                     Task.TaskStatus taskStatus = Task.TaskStatus.fromString(taskStatusStr);
-                    boolean taskCompleted = row.getCell(7).getBooleanCellValue();
+                    boolean taskCompleted = row.getCell(8).getBooleanCellValue();
 
                     Goal associatedGoal = goals.stream()
                             .filter(goal -> goal.getTitle().equals(goalTitle))
@@ -126,16 +135,8 @@ public class FileUtil {
                         continue;
                     }
 
-                    // Use the correct constructor: Task(UUID id, String description, LocalDate dueDate, Priority priority, boolean completed, TaskStatus status)
-                    Task task = new Task(UUID.fromString(taskId), taskDescription, taskDueDate, taskPriority, taskCompleted, taskStatus);
-                    // Set the title field if available (since the constructor does not set it)
-                    if (taskTitle != null && !taskTitle.isEmpty()) {
-                        try {
-                            java.lang.reflect.Field titleField = Task.class.getDeclaredField("title");
-                            titleField.setAccessible(true);
-                            titleField.set(task, taskTitle);
-                        } catch (Exception ignore) {}
-                    }
+                    // Use constructor with startDay and title
+                    Task task = new Task(UUID.fromString(taskId), taskTitle, taskDescription, taskPriority, taskStartDay, taskDueDate, taskStatus, taskCompleted);
                     associatedGoal.addTask(task);
                 } catch (Exception e) {
                     System.err.println("Skipping malformed task row: " + e.getMessage());
