@@ -1,36 +1,43 @@
 package util;
 
-import javax.mail.*;
-import javax.mail.internet.*;
+import jakarta.mail.*;
+import jakarta.mail.internet.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import model.Task;
 
 public class MailService {
-    public static void sendTaskReminder(String toEmail, List<Task> tasks) throws MessagingException {
-        String subject = "\uD83D\uDCCB Your Tasks for Today";
-        String body = tasks.isEmpty()
-            ? "You have no tasks scheduled today!"
-            : tasks.stream().map(Task::toString).collect(Collectors.joining("\n"));
+    public static void sendTaskReminder(String toEmail, List<Task> tasks) {
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.host", "smtp.gmail.com");
+            props.put("mail.smtp.port", "587");
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
 
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
+            // Use your Gmail address and app password here
+            final String username = "quocthien049@gmail.com"; // replace with your Gmail
+            final String password = "nbmh eotu nqjt cjxc";    // replace with your Gmail App Password
 
-        Session session = Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication("your_email@gmail.com", "your_app_password");
-            }
-        });
+            Session session = Session.getInstance(props, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password);
+                }
+            });
 
-        Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress("your_email@gmail.com"));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-        message.setSubject(subject);
-        message.setText(body);
-
-        Transport.send(message);
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress("no-reply@yourdomain.com")); // visible sender
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            message.setSubject("Task Reminder");
+            String body = tasks == null || tasks.isEmpty()
+                ? "You have no tasks today!"
+                : tasks.stream().map(Task::toString).collect(java.util.stream.Collectors.joining("\n"));
+            message.setText(body);
+            Transport.send(message);
+            System.out.println("Reminder sent to " + toEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

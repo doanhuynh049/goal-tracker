@@ -107,7 +107,7 @@ public class GoalService {
         LocalDate today = LocalDate.now();
         return getAllTasks().stream()
                 .filter(task -> {
-                    LocalDate start = task.getStartDate();
+                    LocalDate start = task.getStartDay();
                     LocalDate due = task.getDueDate();
                     boolean inProgress = (start != null && !start.isAfter(today)) && (due != null && !due.isBefore(today));
                     boolean notCompleted = !task.isCompleted();

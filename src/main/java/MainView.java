@@ -12,7 +12,6 @@ import model.Task;
 import service.GoalService;
 import util.DailyScheduler;
 import util.MailService;
-import javax.mail.MessagingException;
 
 public class MainView extends Application {
     private GoalService service = new GoalService();
@@ -30,8 +29,8 @@ public class MainView extends Application {
         // Daily email reminder at 8:00 AM
         DailyScheduler.scheduleDailyTask(() -> {
             try {
-                MailService.sendTaskReminder("user@example.com", service.getTodayTasks());
-            } catch (MessagingException e) {
+                MailService.sendTaskReminder("quocthien049@gmail.com", service.getTodayTasks());
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, 8, 0);
@@ -71,7 +70,7 @@ public class MainView extends Application {
         exitButton.setOnAction(e -> primaryStage.close());
         sendNotificationButton.setOnAction(e -> {
             try {
-                MailService.sendTaskReminder("user@example.com", service.getTodayTasks());
+                MailService.sendTaskReminder("quocthien049@gmail.com", service.getTodayTasks());
                 showInfoDialog("Notification Sent", "Today's tasks notification email sent.");
             } catch (Exception ex) {
                 showInfoDialog("Error", "Failed to send notification: " + ex.getMessage());
