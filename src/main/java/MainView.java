@@ -10,6 +10,9 @@ import javafx.scene.image.ImageView;
 import model.Goal;
 import model.Task;
 import service.GoalService;
+import util.DailyScheduler;
+import util.MailService;
+import javax.mail.MessagingException;
 
 public class MainView extends Application {
     private GoalService service = new GoalService();
@@ -24,6 +27,14 @@ public class MainView extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         service.loadGoalsFromFile();
+        // Daily email reminder at 8:00 AM
+        DailyScheduler.scheduleDailyTask(() -> {
+            try {
+                MailService.sendTaskReminder("user@example.com", service.getTodayTasks());
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
+        }, 8, 0);
 
         VBox layout = new VBox();
         layout.setPadding(new Insets(40));
@@ -40,6 +51,7 @@ public class MainView extends Application {
         Button markTaskCompletedButton = createButton("Mark Task Completed", "mark.png");
         Button saveToFileButton = createButton("Save to Excel", "save.png");
         Button exitButton = createButton("Exit", "exit.png");
+        Button sendNotificationButton = createButton("Send Notification Now", "mark.png");
 
         // Tooltips
         createGoalButton.setTooltip(new Tooltip("Create a new goal"));
@@ -48,6 +60,7 @@ public class MainView extends Application {
         markTaskCompletedButton.setTooltip(new Tooltip("Mark a task as completed"));
         saveToFileButton.setTooltip(new Tooltip("Save all data to Excel"));
         exitButton.setTooltip(new Tooltip("Exit the application"));
+        sendNotificationButton.setTooltip(new Tooltip("Send today's tasks notification email now"));
 
         // Actions
         createGoalButton.setOnAction(e -> createGoal());
@@ -56,12 +69,20 @@ public class MainView extends Application {
         markTaskCompletedButton.setOnAction(e -> markTaskCompleted());
         saveToFileButton.setOnAction(e -> saveToFile());
         exitButton.setOnAction(e -> primaryStage.close());
+        sendNotificationButton.setOnAction(e -> {
+            try {
+                MailService.sendTaskReminder("user@example.com", service.getTodayTasks());
+                showInfoDialog("Notification Sent", "Today's tasks notification email sent.");
+            } catch (Exception ex) {
+                showInfoDialog("Error", "Failed to send notification: " + ex.getMessage());
+            }
+        });
 
         VBox buttonContainer = new VBox(15);
         buttonContainer.setAlignment(Pos.CENTER);
         buttonContainer.getChildren().addAll(
             createGoalButton, addTaskButton, viewGoalsButton,
-            markTaskCompletedButton, saveToFileButton, exitButton
+            markTaskCompletedButton, saveToFileButton, sendNotificationButton, exitButton
         );
 
         // Bind width for responsiveness

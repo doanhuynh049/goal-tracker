@@ -102,4 +102,25 @@ public class GoalService {
     public void deleteGoal(Goal goal) {
         goals.remove(goal);
     }
+
+    public List<Task> getTodayTasks() {
+        LocalDate today = LocalDate.now();
+        return getAllTasks().stream()
+                .filter(task -> {
+                    LocalDate start = task.getStartDate();
+                    LocalDate due = task.getDueDate();
+                    boolean inProgress = (start != null && !start.isAfter(today)) && (due != null && !due.isBefore(today));
+                    boolean notCompleted = !task.isCompleted();
+                    return inProgress && notCompleted;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<Task> getAllTasks() {
+        List<Task> allTasks = new ArrayList<>();
+        for (Goal goal : goals) {
+            allTasks.addAll(goal.getTasks());
+        }
+        return allTasks;
+    }
 }
