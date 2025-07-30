@@ -123,4 +123,19 @@ public class GoalService {
         }
         return allTasks;
     }
+
+    // Get number of completed tasks across all goals
+    public int getCompletedTaskCount() {
+        return (int) getAllTasks().stream().filter(Task::isCompleted).count();
+    }
+
+    // Get number of pending (not completed) tasks across all goals
+    public int getPendingTaskCount() {
+        return (int) getAllTasks().stream().filter(t -> !t.isCompleted()).count();
+    }
+
+    // Get all goals
+    public List<Goal> getGoals() {
+        return getAllGoals();
+    }
 }

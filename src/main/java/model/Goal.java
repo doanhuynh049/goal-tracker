@@ -102,4 +102,14 @@ public class Goal {
     public double getProgressPercent() {
         return getProgress() / 100.0;
     }
+
+    // Get goal name (for chart display)
+    public String getName() {
+        return getTitle();
+    }
+
+    // Get completion percentage (0-100)
+    public double getCompletionPercentage() {
+        return getProgress();
+    }
 }

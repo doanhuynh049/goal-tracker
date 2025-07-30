@@ -7,11 +7,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import model.Goal;
-import model.Task;
 import service.GoalService;
 import util.DailyScheduler;
 import util.MailService;
+
+import java.io.File;
+import javafx.embed.swing.SwingFXUtils;
 
 public class MainView extends Application {
     private GoalService service = new GoalService();
@@ -47,26 +48,24 @@ public class MainView extends Application {
         Button createGoalButton = createButton("Create Goal", "create.png");
         Button addTaskButton = createButton("Add Task to Goal", "add.png");
         Button viewGoalsButton = createButton("View Goals and Progress", "view.png");
-        Button markTaskCompletedButton = createButton("Mark Task Completed", "mark.png");
-        Button saveToFileButton = createButton("Save to Excel", "save.png");
         Button exitButton = createButton("Exit", "exit.png");
         Button sendNotificationButton = createButton("Send Notification Now", "mark.png");
+        Button viewStatisticsButton = createButton("View Statistics", "stats.png");
+        Button sendStatisticsButton = createButton("Send Statistics Email", "email.png");
 
         // Tooltips
         createGoalButton.setTooltip(new Tooltip("Create a new goal"));
         addTaskButton.setTooltip(new Tooltip("Add a task to an existing goal"));
         viewGoalsButton.setTooltip(new Tooltip("View all goals and their progress"));
-        markTaskCompletedButton.setTooltip(new Tooltip("Mark a task as completed"));
-        saveToFileButton.setTooltip(new Tooltip("Save all data to Excel"));
         exitButton.setTooltip(new Tooltip("Exit the application"));
         sendNotificationButton.setTooltip(new Tooltip("Send today's tasks notification email now"));
+        viewStatisticsButton.setTooltip(new Tooltip("View statistics dashboard"));
+        sendStatisticsButton.setTooltip(new Tooltip("Send statistics dashboard via email"));
 
         // Actions
         createGoalButton.setOnAction(e -> createGoal());
         addTaskButton.setOnAction(e -> addTask());
         viewGoalsButton.setOnAction(e -> viewGoals());
-        markTaskCompletedButton.setOnAction(e -> markTaskCompleted());
-        saveToFileButton.setOnAction(e -> saveToFile());
         exitButton.setOnAction(e -> primaryStage.close());
         sendNotificationButton.setOnAction(e -> {
             try {
@@ -76,12 +75,15 @@ public class MainView extends Application {
                 showInfoDialog("Error", "Failed to send notification: " + ex.getMessage());
             }
         });
+        viewStatisticsButton.setOnAction(e -> viewStatistics());
+        sendStatisticsButton.setOnAction(e -> sendStatisticsDashboardEmail());
 
         VBox buttonContainer = new VBox(15);
         buttonContainer.setAlignment(Pos.CENTER);
         buttonContainer.getChildren().addAll(
             createGoalButton, addTaskButton, viewGoalsButton,
-            markTaskCompletedButton, saveToFileButton, sendNotificationButton, exitButton
+            sendNotificationButton,
+            viewStatisticsButton, sendStatisticsButton, exitButton
         );
 
         // Bind width for responsiveness
@@ -180,19 +182,30 @@ public class MainView extends Application {
         goalsView.buildScreen(primaryStage);
     }
 
-    private void markTaskCompleted() {
-        TextInputDialog taskIdDialog = new TextInputDialog();
-        taskIdDialog.setTitle("Mark Task Completed");
-        taskIdDialog.setHeaderText("Enter Task ID to mark as completed:");
-        taskIdDialog.showAndWait().ifPresent(taskId -> {
-            service.markTaskCompleted(taskId);
-            showInfoDialog("Task Completed", "Task marked as completed.");
-        });
+    private void sendStatisticsDashboardEmail() {
+        StatisticsView statisticsView = new StatisticsView(service);
+        try {
+            VBox dashboard = statisticsView.createChartsContainer();
+            File imageFile = exportDashboardToImage(dashboard);
+            MailService.sendDashboardWithAttachment("quocthien049@gmail.com", imageFile);
+            showInfoDialog("Dashboard Sent", "Statistics dashboard email sent.");
+        } catch (Exception ex) {
+            showInfoDialog("Error", "Failed to send dashboard: " + ex.getMessage());
+        }
     }
 
-    private void saveToFile() {
-        service.saveGoalsToFile();
-        showInfoDialog("Save Successful", "Goals and tasks saved to Excel.");
+    // Export a JavaFX node (dashboard) to a PNG image file
+    private File exportDashboardToImage(VBox dashboard) throws Exception {
+        javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
+        javafx.scene.image.WritableImage image = dashboard.snapshot(params, null);
+        File file = File.createTempFile("dashboard", ".png");
+        javax.imageio.ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+        return file;
+    }
+
+    private void viewStatistics() {
+        StatisticsView statisticsView = new StatisticsView(service);
+        statisticsView.buildScreen(primaryStage);
     }
 
     private void showInfoDialog(String title, String content) {
