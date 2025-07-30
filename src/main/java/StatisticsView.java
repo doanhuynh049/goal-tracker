@@ -28,7 +28,7 @@ public class StatisticsView {
     public void buildScreen(Stage primaryStage) {
         BorderPane mainLayout = new BorderPane();
         mainLayout.setPadding(new Insets(20));
-        mainLayout.setStyle("-fx-background-color: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);");
+        mainLayout.setStyle("-fx-background-color: #f0f4f8;");
 
         // Title
         Label titleLabel = new Label("Statistics Dashboard");
