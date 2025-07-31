@@ -8,17 +8,20 @@ import javafx.geometry.Pos;
 import model.Goal;
 import model.GoalType;
 import service.GoalService;
+import util.AppLogger;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public class GoalEditView {
+    private static final java.util.logging.Logger logger = AppLogger.getLogger();
     private final GoalService service;
     private final List<Goal> goals;
 
     public GoalEditView(GoalService service) {
         this.service = service;
         this.goals = service.getAllGoals();
+        logger.info("GoalEditView initialized");
     }
 
     private Goal findGoalByTitle(String title) {
@@ -91,7 +94,8 @@ public class GoalEditView {
         root.setBackground(new Background(bgImage));
     }
 
-    public void buildScreen(Stage primaryStage, Goal selectedGoal) {
+    public void buildScreen(Stage primaryStage) {
+        logger.info("GoalEditView screen built");
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(40));
 
@@ -189,12 +193,14 @@ public class GoalEditView {
                 service.addGoal(goal);
                 titleComboBox.getItems().add(title);
                 showDialog("Created", "New goal created.");
+                logger.info("Goal created: " + title);
             } else {
                 goal.setType(type);
                 goal.setTargetDate(date);
                 goal.setNotes(notes);
                 goal.updateLastModified();
                 showDialog("Updated", "Goal updated.");
+                logger.info("Goal updated: " + title);
             }
 
             service.saveGoalsToFile();
@@ -224,6 +230,7 @@ public class GoalEditView {
                         notesArea.clear();
                         progressBar.setProgress(0);
                         progressLabel.setText("0% Completed");
+                        logger.info("Goal deleted: " + title);
                     }
                 });
             }

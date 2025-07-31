@@ -9,20 +9,25 @@ import javafx.geometry.Pos;
 import model.Goal;
 import model.Task;
 import service.GoalService;
+import util.AppLogger;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public class GoalsView {
+    private static final java.util.logging.Logger logger = AppLogger.getLogger();
+
     private final GoalService service;
     private VBox leftColumn;
     private VBox rightColumn;
 
     public GoalsView(GoalService service) {
         this.service = service;
+        logger.info("GoalsView initialized");
     }
 
     public void buildScreen(Stage primaryStage) {
+        logger.info("Building GoalsView screen");
         BorderPane mainLayout = new BorderPane();
         mainLayout.setPadding(new Insets(20));
         mainLayout.setStyle("-fx-background-color: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);");
@@ -92,6 +97,7 @@ public class GoalsView {
         leftColumn.setPadding(new Insets(10));
 
         List<Goal> allGoals = service.getAllGoals();
+        logger.info("Loaded " + allGoals.size() + " goals for left column");
 
         // Sort goals by type, then by due date if type is the same
         allGoals.sort((g1, g2) -> {
@@ -214,6 +220,7 @@ public class GoalsView {
 
     public void updateRightColumn(Goal selectedGoal) {
         if (rightColumn == null) return;
+        logger.info("Updating right column for goal: " + selectedGoal.getTitle());
         rightColumn.getChildren().clear();
         List<Task> tasks = selectedGoal.getTasks();
 
@@ -415,7 +422,7 @@ public class GoalsView {
 
     private void updateLeftColumn() {
         if (leftColumn == null) return;
-
+        logger.info("Refreshing left column");
         leftColumn.getChildren().clear();
         List<Goal> allGoals = service.getAllGoals();
 

@@ -10,11 +10,13 @@ import javafx.scene.image.ImageView;
 import service.GoalService;
 import util.DailyScheduler;
 import util.MailService;
+import util.AppLogger;
 
 import java.io.File;
 import javafx.embed.swing.SwingFXUtils;
 
 public class MainView extends Application {
+    private static final java.util.logging.Logger logger = AppLogger.getLogger();
     private GoalService service = new GoalService();
     private Stage primaryStage;
     private GoalsView goalsView;
@@ -23,9 +25,15 @@ public class MainView extends Application {
         launch(args);
     }
 
+    public MainView() {
+        logger.info("MainView initialized");
+    }
+
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        logger.info("MainView started");
+
         service.loadGoalsFromFile();
         // Daily email reminder at 8:00 AM
         DailyScheduler.scheduleDailyTask(() -> {
@@ -169,7 +177,7 @@ public class MainView extends Application {
 
     private void createGoal() {
         GoalEditView goalEditView = new GoalEditView(service);
-        goalEditView.buildScreen(primaryStage, null);
+        goalEditView.buildScreen(primaryStage);
     }
 
     private void addTask() {
