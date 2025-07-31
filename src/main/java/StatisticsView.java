@@ -10,6 +10,7 @@ import model.Goal;
 import model.Task;
 import service.GoalService;
 import util.MailService;
+import util.AppLogger;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -18,14 +19,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StatisticsView {
+    private static final java.util.logging.Logger logger = AppLogger.getLogger();
     private final GoalService service;
     private VBox chartsContainer;
 
     public StatisticsView(GoalService service) {
         this.service = service;
+        logger.info("StatisticsView initialized");
     }
 
     public void buildScreen(Stage primaryStage) {
+        logger.info("StatisticsView screen built");
         BorderPane mainLayout = new BorderPane();
         mainLayout.setPadding(new Insets(20));
         mainLayout.setStyle("-fx-background-color: #f0f4f8;");
@@ -258,14 +262,17 @@ public class StatisticsView {
         chartsContainer.getChildren().clear();
         chartsContainer.getChildren().addAll(createChartsContainer().getChildren());
         showInfoDialog("Refresh", "Statistics have been refreshed.");
+        logger.info("StatisticsView charts refreshed");
     }
 
     private void exportDashboard() {
         try {
             File imageFile = exportDashboardToImage(chartsContainer);
             showInfoDialog("Export Successful", "Dashboard exported to: " + imageFile.getAbsolutePath());
+            logger.info("Dashboard exported as image: " + imageFile.getAbsolutePath());
         } catch (Exception ex) {
             showInfoDialog("Export Error", "Failed to export dashboard: " + ex.getMessage());
+            logger.severe("Error exporting dashboard: " + ex.getMessage());
         }
     }
 
@@ -274,8 +281,10 @@ public class StatisticsView {
             File imageFile = exportDashboardToImage(chartsContainer);
             MailService.sendDashboardWithAttachment("quocthien049@gmail.com", imageFile);
             showInfoDialog("Email Sent", "Statistics dashboard email sent successfully.");
+            logger.info("Dashboard email sent to: quocthien049@gmail.com");
         } catch (Exception ex) {
             showInfoDialog("Email Error", "Failed to send dashboard email: " + ex.getMessage());
+            logger.severe("Error sending dashboard email: " + ex.getMessage());
         }
     }
 

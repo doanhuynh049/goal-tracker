@@ -17,7 +17,8 @@ import javafx.collections.transformation.FilteredList;
 import model.Goal;
 import model.GoalType;
 import service.GoalService;
-import util.DragAndDropHelper;
+// import util.DragAndDropHelper;
+import util.AppLogger;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -28,6 +29,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class GoalsView {
+    private static final java.util.logging.Logger logger = AppLogger.getLogger();
+
     private final GoalService service;
     private VBox leftColumn;
     private VBox rightColumn;
@@ -57,9 +60,11 @@ public class GoalsView {
     public GoalsView(GoalService service) {
         this.service = service;
         // this.dragDropHelper = new DragAndDropHelper(service);
+        logger.info("GoalsView initialized");
     }
 
     public void buildScreen(Stage primaryStage) {
+        logger.info("Building GoalsView screen");
         BorderPane mainLayout = new BorderPane();
         mainLayout.setPadding(new Insets(20));
         
@@ -652,6 +657,7 @@ public class GoalsView {
 
         leftColumn.getChildren().clear();
         List<Goal> allGoals = service.getAllGoals();
+        logger.info("Loaded " + allGoals.size() + " goals for left column");
 
         // Sort goals by type, then by due date
         allGoals.sort((g1, g2) -> {
@@ -789,6 +795,7 @@ public class GoalsView {
 
     public void updateRightColumn(Goal selectedGoal) {
         if (rightColumn == null) return;
+        logger.info("Updating right column for goal: " + selectedGoal.getTitle());
         rightColumn.getChildren().clear();
         
         // Goal header

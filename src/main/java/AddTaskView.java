@@ -9,8 +9,10 @@ import model.Task;
 import service.GoalService;
 import java.time.LocalDate;
 import java.util.List;
+import util.AppLogger;
 
 public class AddTaskView {
+    private static final java.util.logging.Logger logger = AppLogger.getLogger();
     private final GoalService service;
     private final List<Goal> goals;
     private VBox mainPanel;
@@ -18,6 +20,7 @@ public class AddTaskView {
     public AddTaskView(GoalService service) {
         this.service = service;
         this.goals = service.getAllGoals();
+        logger.info("AddTaskView initialized");
     }
 
     public void buildScreen(Stage primaryStage) {
@@ -89,6 +92,7 @@ public class AddTaskView {
             Task task = new Task(taskTitle, taskDesc, dueDate, priority, false, status);
             service.addTaskToGoal(selectedGoal.getId(), task);
             showInfoDialog("Task Added", "Task added successfully!");
+            logger.info("Task added: " + taskTitle + " to goal: " + selectedGoal.getTitle());
             // Optionally clear fields or go back
             titleField.clear();
             descField.clear();
@@ -118,6 +122,7 @@ public class AddTaskView {
         primaryStage.setTitle("Add Task");
         primaryStage.setScene(addTaskScene);
         primaryStage.show();
+        logger.info("AddTaskView screen built");
     }
 
     private void showInfoDialog(String title, String content) {
