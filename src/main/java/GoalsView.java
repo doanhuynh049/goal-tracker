@@ -35,28 +35,28 @@ public class GoalsView {
     private TabPane goalTabPane;
     private Goal selectedGoal;
     
-    // Search and filter functionality
-    private TextField searchField;
-    private ComboBox<String> filterCombo;
-    private FilteredList<Goal> filteredGoals;
-    private ObservableList<Goal> allGoals;
+    // // Search and filter functionality
+    // private TextField searchField;
+    // private ComboBox<String> filterCombo;
+    // private FilteredList<Goal> filteredGoals;
+    // private ObservableList<Goal> allGoals;
     
-    // Auto-save functionality
-    private final AtomicBoolean hasUnsavedChanges = new AtomicBoolean(false);
-    private Timer autoSaveTimer;
-    private Label saveStatusLabel;
-    private Circle saveStatusIndicator;
+    // // Auto-save functionality
+    // private final AtomicBoolean hasUnsavedChanges = new AtomicBoolean(false);
+    // private Timer autoSaveTimer;
+    // private Label saveStatusLabel;
+    // private Circle saveStatusIndicator;
     
-    // Statistics dashboard
-    private VBox statsPanel;
-    private boolean statsVisible = false;
+    // // Statistics dashboard
+    // private VBox statsPanel;
+    // private boolean statsVisible = false;
     
     // Drag and drop helper
-    private DragAndDropHelper dragDropHelper;
+    // private DragAndDropHelper dragDropHelper;
 
     public GoalsView(GoalService service) {
         this.service = service;
-        this.dragDropHelper = new DragAndDropHelper(service);
+        // this.dragDropHelper = new DragAndDropHelper(service);
     }
 
     public void buildScreen(Stage primaryStage) {
