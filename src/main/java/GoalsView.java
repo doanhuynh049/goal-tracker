@@ -73,7 +73,7 @@ public class GoalsView {
         try {
             scene.getStylesheets().add(getClass().getResource("/styles/modern-goals.css").toExternalForm());
         } catch (Exception e) {
-            // Fallback to inline styles if CSS file not found
+            logger.warning("Failed to load CSS: " + e.getMessage());
             mainLayout.setStyle("-fx-background-color: #f8fafc;");
         }
 
@@ -87,15 +87,15 @@ public class GoalsView {
         goalTabPane.setStyle("-fx-background-color: transparent;");
 
         // Tab 1: Hierarchical View
-        Tab hierarchicalTab = new Tab("🏗️ Hierarchical Goals");
+        Tab hierarchicalTab = new Tab("\uD83D\uDEE0\uFE0F Hierarchical Goals");
         hierarchicalTab.setContent(createHierarchicalView());
 
         // Tab 2: List View (original design enhanced)
-        Tab listTab = new Tab("📋 All Goals");
+        Tab listTab = new Tab("\uD83D\uDCCB All Goals");
         listTab.setContent(createListView());
 
         // Tab 3: Board View (Kanban-style)
-        Tab boardTab = new Tab("📊 Goal Board");
+        Tab boardTab = new Tab("\uD83D\uDCCA Goal Board");
         boardTab.setContent(createBoardView());
 
         goalTabPane.getTabs().addAll(hierarchicalTab, listTab, boardTab);
@@ -105,9 +105,10 @@ public class GoalsView {
         HBox footer = createFooter();
         mainLayout.setBottom(footer);
 
-        primaryStage.setTitle("🎯 Goal Tracker - Modern View");
+        primaryStage.setTitle("\uD83C\uDFAF Goal Tracker - Modern View");
         primaryStage.setScene(scene);
         primaryStage.show();
+        logger.info("GoalsView screen displayed");
     }
 
     private HBox createModernHeader(Stage primaryStage) {
@@ -164,9 +165,15 @@ public class GoalsView {
     }
 
     private void openAddGoalDialog(Stage parentStage) {
+        logger.info("Opening Add Goal dialog");
         Stage dialog = new Stage();
         dialog.setTitle("Create New Goal");
         dialog.initOwner(parentStage);
+
+        // Log when dialog is closed/cancelled without creating a goal
+        dialog.setOnCloseRequest(event -> {
+            logger.info("Add Goal dialog closed/cancelled");
+        });
 
         VBox layout = new VBox(15);
         layout.setPadding(new Insets(20));
@@ -203,8 +210,10 @@ public class GoalsView {
                     null
                 );
                 service.addGoal(newGoal);
+                logger.info("New goal created: " + newGoal.getTitle());
                 refreshAllViews();
                 dialog.close();
+                logger.info("Add Goal dialog closed after creation");
             }
         });
 
@@ -218,7 +227,8 @@ public class GoalsView {
 
         Scene dialogScene = new Scene(layout, 400, 350);
         dialog.setScene(dialogScene);
-        dialog.showAndWait();
+        dialog.show();
+        logger.info("Add Goal dialog shown");
     }
 
     private ScrollPane createHierarchicalView() {
@@ -596,6 +606,7 @@ public class GoalsView {
         // Click handler
         card.setOnMouseClicked(e -> {
             selectedGoal = goal;
+            logger.info("Goal card clicked: " + goal.getTitle());
             updateRightColumn(goal);
         });
         
@@ -617,13 +628,20 @@ public class GoalsView {
             "-fx-padding: 12 24 12 24;"
         );
         saveButton.setOnAction(e -> {
-            service.saveGoalsToFile();
-            // Show save confirmation
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Success");
-            alert.setHeaderText(null);
-            alert.setContentText("Goals saved successfully!");
-            alert.showAndWait();
+            try {
+                service.saveGoalsToFile();
+                logger.info("Goals saved to file");
+                // Show save confirmation
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Success");
+                alert.setHeaderText(null);
+                alert.setContentText("Goals saved successfully!");
+                alert.show();
+            } catch (Exception ex) {
+                logger.warning("Failed to save goals: " + ex.getMessage());
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to save goals: " + ex.getMessage());
+                alert.show();
+            }
         });
         
         Button loadButton = new Button("📂 Load from Excel");
@@ -636,15 +654,22 @@ public class GoalsView {
             "-fx-padding: 12 24 12 24;"
         );
         loadButton.setOnAction(e -> {
-            service.loadGoalsFromFile();
-            // Refresh all views
-            refreshAllViews();
-            // Show load confirmation
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Success");
-            alert.setHeaderText(null);
-            alert.setContentText("Goals loaded successfully!");
-            alert.showAndWait();
+            try {
+                service.loadGoalsFromFile();
+                logger.info("Goals loaded from file");
+                // Refresh all views
+                refreshAllViews();
+                // Show load confirmation
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Success");
+                alert.setHeaderText(null);
+                alert.setContentText("Goals loaded successfully!");
+                alert.show();
+            } catch (Exception ex) {
+                logger.warning("Failed to load goals: " + ex.getMessage());
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to load goals: " + ex.getMessage());
+                alert.show();
+            }
         });
         
         footer.getChildren().addAll(loadButton, saveButton);
@@ -857,7 +882,6 @@ public class GoalsView {
             VBox taskCard = createModernTaskCard(task, selectedGoal);
             rightColumn.getChildren().add(taskCard);
         }
-
         // Add Task Button
         Button addTaskButton = new Button("+ Add New Task");
         addTaskButton.setStyle(
@@ -870,6 +894,7 @@ public class GoalsView {
         );
         addTaskButton.setMaxWidth(Double.MAX_VALUE);
         addTaskButton.setOnAction(e -> {
+            logger.info("Add Task button clicked for goal: " + selectedGoal.getTitle());
             AddTaskView addTaskView = new AddTaskView(service);
             addTaskView.buildScreen((Stage) addTaskButton.getScene().getWindow());
         });
@@ -989,6 +1014,7 @@ public class GoalsView {
         statusCombo.setValue(task.getStatus());
         statusCombo.setOnAction(e -> {
             model.Task.TaskStatus newStatus = statusCombo.getValue();
+            logger.info("Task status changed: " + task.getTitle() + " -> " + newStatus);
             task.setStatus(newStatus);
             task.setCompleted(newStatus == model.Task.TaskStatus.DONE);
             service.saveGoalsToFile();
@@ -1006,6 +1032,7 @@ public class GoalsView {
         DatePicker duePicker = new DatePicker(task.getDueDate());
         duePicker.setOnAction(e -> {
             task.setDueDate(duePicker.getValue());
+            logger.info("Task due date changed: " + task.getTitle() + " -> " + duePicker.getValue());
             service.saveGoalsToFile();
             updateRightColumn(parentGoal);
         });
@@ -1041,12 +1068,12 @@ public class GoalsView {
     }
 
     private void refreshAllViews() {
+        logger.info("Refreshing all views");
         // Refresh hierarchical view
         if (hierarchyTreeView != null) {
             hierarchyTreeView.setRoot(null);
             hierarchyTreeView = createGoalTreeView();
         }
-        
         // Refresh list view
         if (leftColumn != null) {
             updateLeftColumn();
