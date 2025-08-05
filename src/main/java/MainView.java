@@ -206,7 +206,7 @@ public class MainView extends Application {
     private File exportDashboardToImage(VBox dashboard) throws Exception {
         javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
         javafx.scene.image.WritableImage image = dashboard.snapshot(params, null);
-        File file = File.createTempFile("dashboard", ".png");
+        File file = File.createTempFile("statistics_dashboard", ".png");
         javax.imageio.ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
         return file;
     }

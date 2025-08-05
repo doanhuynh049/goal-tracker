@@ -5,7 +5,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.geometry.Insets;
 import javafx.scene.shape.Circle;
-import javafx.geometry.Pos;
 import model.Goal;
 import model.Task;
 import service.GoalService;
@@ -96,11 +95,11 @@ public class GoalsView {
         leftColumn = new VBox(10);
         leftColumn.setPadding(new Insets(10));
 
-        List<Goal> allGoals = service.getAllGoals();
-        logger.info("Loaded " + allGoals.size() + " goals for left column");
+        // Get root goals and display them hierarchically
+        List<Goal> rootGoals = service.getRootGoals();
 
-        // Sort goals by type, then by due date if type is the same
-        allGoals.sort((g1, g2) -> {
+        // Sort root goals by type, then by due date
+        rootGoals.sort((g1, g2) -> {
             int typeCompare = g1.getType().compareTo(g2.getType());
             if (typeCompare != 0) return typeCompare;
             if (g1.getTargetDate() != null && g2.getTargetDate() != null) {
@@ -113,89 +112,9 @@ public class GoalsView {
             return 0;
         });
 
-        for (int i = 0; i < Math.min(allGoals.size(), 10); i++) {
-            Goal goal = allGoals.get(i);
-            VBox goalContainer = new VBox(6);
-            goalContainer.setPadding(new Insets(10));
-            goalContainer.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-border-color: #e0e0e0;" +
-                "-fx-border-radius: 8px;" +
-                "-fx-background-radius: 8px;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
-            );
-
-            // Hover effect
-            goalContainer.setOnMouseEntered(e -> goalContainer.setStyle(
-                "-fx-background-color: #f0f8ff;" +
-                "-fx-border-color: #0078D7;" +
-                "-fx-border-radius: 8px;" +
-                "-fx-background-radius: 8px;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0.2, 0, 2);"
-            ));
-            goalContainer.setOnMouseExited(e -> goalContainer.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-border-color: #e0e0e0;" +
-                "-fx-border-radius: 8px;" +
-                "-fx-background-radius: 8px;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
-            ));
-
-            // Title
-            Text goalTitleText = new Text(goal.getTitle());
-            goalTitleText.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-            goalTitleText.setWrappingWidth(180);
-            Tooltip.install(goalTitleText, new Tooltip(goal.getTitle()));
-
-            // Goal type badge
-            Label typeLabel = new Label(goal.getType().toString().replace("_", " "));
-            typeLabel.setStyle(
-                "-fx-background-color: #e0e0e0; " +
-                "-fx-text-fill: #333;" +
-                "-fx-font-size: 10px;" +
-                "-fx-padding: 2 6 2 6;" +
-                "-fx-background-radius: 5px;"
-            );
-            switch (goal.getType()) {
-                case WEEKLY:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #e1f5fe;");
-                    break;
-                case MONTHLY:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fce4ec;");
-                    break;
-                case YEARLY:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ede7f6;");
-                    break;
-                case DAILY:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fffde7;");
-                    break;
-                case SHORT_TERM:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ffe0b2;");
-                    break;
-                case LONG_TERM:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #d1c4e9;");
-                    break;
-            }
-
-            // Progress
-            ProgressBar progressBar = new ProgressBar(goal.getProgress() / 100.0);
-            progressBar.setPrefWidth(200);
-
-            Text progressText = new Text(String.format("%.2f%%", goal.getProgress()));
-            progressText.setStyle("-fx-font-size: 12px;");
-
-            Text dueDate = new Text("Due: " + goal.getTargetDate());
-            dueDate.setStyle("-fx-font-size: 11px; -fx-fill: #888;");
-
-            Tooltip.install(goalTitleText, new Tooltip(goal.getTitle()));
-            Tooltip.install(typeLabel, new Tooltip(typeLabel.getText()));
-
-            VBox titleBox = new VBox(2, goalTitleText, typeLabel);
-            goalContainer.getChildren().addAll(titleBox, progressBar, progressText, dueDate);
-
-
-            goalContainer.setOnMouseClicked(event -> updateRightColumn(goal));
-            leftColumn.getChildren().add(goalContainer);
+        // Display goals hierarchically
+        for (Goal rootGoal : rootGoals) {
+            addGoalToColumn(rootGoal, 0);
         }
 
         ScrollPane leftScroll = new ScrollPane(leftColumn);
@@ -206,6 +125,97 @@ public class GoalsView {
 
         VBox wrapper = new VBox(leftScroll);
         return wrapper;
+    }
+    
+    private void addGoalToColumn(Goal goal, int indentLevel) {
+        VBox goalContainer = new VBox(6);
+        goalContainer.setPadding(new Insets(10, 10, 10, 10 + (indentLevel * 20))); // Indent based on hierarchy level
+        goalContainer.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-border-color: #e0e0e0;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-background-radius: 8px;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
+        );
+
+        // Hover effects
+        goalContainer.setOnMouseEntered(e -> goalContainer.setStyle(
+            "-fx-background-color: #f0f8ff;" +
+            "-fx-border-color: #0078D7;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-background-radius: 8px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0.2, 0, 2);"
+        ));
+        goalContainer.setOnMouseExited(e -> goalContainer.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-border-color: #e0e0e0;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-background-radius: 8px;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
+        ));
+
+        // Title with hierarchy indicator
+        String hierarchyPrefix = "  ".repeat(indentLevel) + (indentLevel > 0 ? "└ " : "");
+        Text goalTitleText = new Text(hierarchyPrefix + goal.getTitle());
+        goalTitleText.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        goalTitleText.setWrappingWidth(180);
+
+        // Goal type badge
+        Label typeLabel = new Label(goal.getType().toString().replace("_", " "));
+        typeLabel.setStyle(
+            "-fx-background-color: #e0e0e0; " +
+            "-fx-text-fill: #333;" +
+            "-fx-font-size: 10px;" +
+            "-fx-padding: 2 6 2 6;" +
+            "-fx-background-radius: 5px;"
+        );
+        
+        // Color coding by type
+        switch (goal.getType()) {
+            case WEEKLY:
+                typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #e1f5fe;");
+                break;
+            case MONTHLY:
+                typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fce4ec;");
+                break;
+            case YEARLY:
+                typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ede7f6;");
+                break;
+            case DAILY:
+                typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fffde7;");
+                break;
+            case SHORT_TERM:
+                typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ffe0b2;");
+                break;
+            case LONG_TERM:
+                typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #d1c4e9;");
+                break;
+        }
+
+        // Progress
+        ProgressBar progressBar = new ProgressBar(goal.getProgress() / 100.0);
+        progressBar.setPrefWidth(200);
+
+        Text progressText = new Text(String.format("%.2f%%", goal.getProgress()));
+        progressText.setStyle("-fx-font-size: 12px;");
+
+        Text dueDate = new Text("Due: " + goal.getTargetDate());
+        dueDate.setStyle("-fx-font-size: 11px; -fx-fill: #888;");
+
+        // Add hierarchy path tooltip
+        Tooltip.install(goalTitleText, new Tooltip(goal.getHierarchicalPath()));
+        Tooltip.install(typeLabel, new Tooltip(typeLabel.getText()));
+
+        VBox titleBox = new VBox(2, goalTitleText, typeLabel);
+        goalContainer.getChildren().addAll(titleBox, progressBar, progressText, dueDate);
+
+        goalContainer.setOnMouseClicked(event -> updateRightColumn(goal));
+        leftColumn.getChildren().add(goalContainer);
+        
+        // Recursively add sub-goals
+        for (Goal subGoal : goal.getSubGoals()) {
+            addGoalToColumn(subGoal, indentLevel + 1);
+        }
     }
 
     public VBox createRightColumn() {
@@ -424,10 +434,12 @@ public class GoalsView {
         if (leftColumn == null) return;
         logger.info("Refreshing left column");
         leftColumn.getChildren().clear();
-        List<Goal> allGoals = service.getAllGoals();
+        
+        // Get root goals and display them hierarchically
+        List<Goal> rootGoals = service.getRootGoals();
 
-        // Sort goals by type, then by due date if type is the same
-        allGoals.sort((g1, g2) -> {
+        // Sort root goals by type, then by due date
+        rootGoals.sort((g1, g2) -> {
             int typeCompare = g1.getType().compareTo(g2.getType());
             if (typeCompare != 0) return typeCompare;
             if (g1.getTargetDate() != null && g2.getTargetDate() != null) {
@@ -440,86 +452,11 @@ public class GoalsView {
             return 0;
         });
 
-        for (int i = 0; i < Math.min(allGoals.size(), 10); i++) {
-            Goal goal = allGoals.get(i);
-            VBox goalContainer = new VBox(6);
-            goalContainer.setPadding(new Insets(10));
-            goalContainer.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-border-color: #e0e0e0;" +
-                "-fx-border-radius: 8px;" +
-                "-fx-background-radius: 8px;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
-            );
-
-            // Hover effect
-            goalContainer.setOnMouseEntered(e -> goalContainer.setStyle(
-                "-fx-background-color: #f0f8ff;" +
-                "-fx-border-color: #0078D7;" +
-                "-fx-border-radius: 8px;" +
-                "-fx-background-radius: 8px;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0.2, 0, 2);"
-            ));
-            goalContainer.setOnMouseExited(e -> goalContainer.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-border-color: #e0e0e0;" +
-                "-fx-border-radius: 8px;" +
-                "-fx-background-radius: 8px;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 1);"
-            ));
-
-            // Title
-            Text goalTitleText = new Text(goal.getTitle());
-            goalTitleText.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-            goalTitleText.setWrappingWidth(180);
-            Tooltip.install(goalTitleText, new Tooltip(goal.getTitle()));
-
-            // Goal type badge
-            Label typeLabel = new Label(goal.getType().toString().replace("_", " "));
-            typeLabel.setStyle(
-                "-fx-background-color: #e0e0e0; " +
-                "-fx-text-fill: #333;" +
-                "-fx-font-size: 10px;" +
-                "-fx-padding: 2 6 2 6;" +
-                "-fx-background-radius: 5px;"
-            );
-            switch (goal.getType()) {
-                case WEEKLY:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #e1f5fe;");
-                    break;
-                case MONTHLY:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fce4ec;");
-                    break;
-                case YEARLY:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ede7f6;");
-                    break;
-                case DAILY:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #fffde7;");
-                    break;
-                case SHORT_TERM:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #ffe0b2;");
-                    break;
-                case LONG_TERM:
-                    typeLabel.setStyle(typeLabel.getStyle() + "-fx-background-color: #d1c4e9;");
-                    break;
-            }
-
-            // Progress
-            ProgressBar progressBar = new ProgressBar(goal.getProgress() / 100.0);
-            progressBar.setPrefWidth(200);
-            Text progressText = new Text(String.format("%.2f%%", goal.getProgress()));
-            progressText.setStyle("-fx-font-size: 12px;");
-            Text dueDate = new Text("Due: " + goal.getTargetDate());
-            dueDate.setStyle("-fx-font-size: 11px; -fx-fill: #888;");
-
-            VBox titleBox = new VBox(2, goalTitleText, typeLabel);
-            goalContainer.getChildren().addAll(titleBox, progressBar, progressText, dueDate);
-
-            goalContainer.setOnMouseClicked(event -> updateRightColumn(goal));
-            leftColumn.getChildren().add(goalContainer);
+        // Display goals hierarchically
+        for (Goal rootGoal : rootGoals) {
+            addGoalToColumn(rootGoal, 0);
         }
     }
-
 
     // Helper for status order: IN_PROGRESS(0), TO_DO(1), DONE(2)
     private int getStatusOrder(Task.TaskStatus status) {

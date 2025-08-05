@@ -63,17 +63,33 @@ public class GoalEditView {
         progressLabel.setText(String.format("%.0f%% Completed", progress * 100));
     }
 
-    private void setupFormFields(GridPane form, ComboBox<String> titleComboBox, ComboBox<GoalType> typeCombo, DatePicker datePicker, TextArea notesArea, ProgressBar progressBar, Label progressLabel) {
+    // Update parent goal options based on selected goal type
+    private void updateParentGoalOptions(GoalType selectedType, ComboBox<Goal> parentGoalCombo) {
+        parentGoalCombo.getItems().clear();
+        
+        if (selectedType == null) return;
+        
+        // Get all goals that can be parents for this type
+        List<Goal> potentialParents = service.getAllGoalsFlattened().stream()
+            .filter(goal -> goal.canHaveChild(selectedType))
+            .collect(java.util.stream.Collectors.toList());
+            
+        parentGoalCombo.getItems().addAll(potentialParents);
+    }
+
+    private void setupFormFields(GridPane form, ComboBox<String> titleComboBox, ComboBox<GoalType> typeCombo, ComboBox<Goal> parentGoalCombo, DatePicker datePicker, TextArea notesArea, ProgressBar progressBar, Label progressLabel) {
         form.add(new Label("Title:"), 0, 0);
         form.add(titleComboBox, 1, 0);
         form.add(new Label("Type:"), 0, 1);
         form.add(typeCombo, 1, 1);
-        form.add(new Label("Target Date:"), 0, 2);
-        form.add(datePicker, 1, 2);
-        form.add(new Label("Notes:"), 0, 3);
-        form.add(notesArea, 1, 3);
-        form.add(new Label("Progress:"), 0, 4);
-        form.add(new VBox(5, progressBar, progressLabel), 1, 4);
+        form.add(new Label("Parent Goal:"), 0, 2);
+        form.add(parentGoalCombo, 1, 2);
+        form.add(new Label("Target Date:"), 0, 3);
+        form.add(datePicker, 1, 3);
+        form.add(new Label("Notes:"), 0, 4);
+        form.add(notesArea, 1, 4);
+        form.add(new Label("Progress:"), 0, 5);
+        form.add(new VBox(5, progressBar, progressLabel), 1, 5);
     }
 
     private HBox setupActionBar(Button backBtn, Button deleteBtn, Button saveBtn) {
@@ -133,6 +149,40 @@ public class GoalEditView {
         typeCombo.setMaxWidth(400);
         typeCombo.setStyle("-fx-padding: 8;");
 
+        // Parent Goal Selector for hierarchical structure
+        ComboBox<Goal> parentGoalCombo = new ComboBox<>();
+        parentGoalCombo.setPromptText("Select parent goal (optional)");
+        parentGoalCombo.setMaxWidth(400);
+        parentGoalCombo.setStyle("-fx-padding: 8;");
+        
+        // Custom cell factory to display goal hierarchy
+        parentGoalCombo.setCellFactory(lv -> new ListCell<Goal>() {
+            @Override
+            protected void updateItem(Goal item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getHierarchicalPath());
+                }
+            }
+        });
+        
+        parentGoalCombo.setButtonCell(new ListCell<Goal>() {
+            @Override
+            protected void updateItem(Goal item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("Select parent goal (optional)");
+                } else {
+                    setText(item.getHierarchicalPath());
+                }
+            }
+        });
+        
+        // Update parent goal options based on selected type
+        typeCombo.setOnAction(e -> updateParentGoalOptions(typeCombo.getValue(), parentGoalCombo));
+
         DatePicker datePicker = new DatePicker(LocalDate.now());
         datePicker.setDayCellFactory(picker -> new DateCell() {
             public void updateItem(LocalDate date, boolean empty) {
@@ -180,6 +230,7 @@ public class GoalEditView {
             GoalType type = typeCombo.getValue();
             LocalDate date = datePicker.getValue();
             String notes = notesArea.getText();
+            Goal parentGoal = parentGoalCombo.getValue();
 
             if (title.isEmpty() || type == null || date == null) {
                 showDialog("Incomplete", "Please fill all required fields.");
@@ -188,12 +239,16 @@ public class GoalEditView {
 
             Goal goal = findGoalByTitle(title);
             if (goal == null) {
-                goal = new Goal(title, type, date);
+                // Create new hierarchical goal
+                if (parentGoal != null) {
+                    goal = service.createHierarchicalGoal(title, type, date, parentGoal);
+                } else {
+                    goal = new Goal(title, type, date);
+                    service.addGoal(goal);
+                }
                 goal.setNotes(notes);
-                service.addGoal(goal);
                 titleComboBox.getItems().add(title);
-                showDialog("Created", "New goal created.");
-                logger.info("Goal created: " + title);
+                showDialog("Created", "New goal created" + (parentGoal != null ? " under " + parentGoal.getTitle() : "") + ".");
             } else {
                 goal.setType(type);
                 goal.setTargetDate(date);
@@ -247,7 +302,7 @@ public class GoalEditView {
         backBtn.setOnAction(e -> primaryStage.setScene(previousScene));
 
         HBox actionBar = setupActionBar(backBtn, deleteBtn, saveBtn);
-        setupFormFields(form, titleComboBox, typeCombo, datePicker, notesArea, progressBar, progressLabel);
+        setupFormFields(form, titleComboBox, typeCombo, parentGoalCombo, datePicker, notesArea, progressBar, progressLabel);
         VBox centerBox = new VBox(30, form, actionBar);
         centerBox.setAlignment(Pos.TOP_CENTER);
         centerBox.setPadding(new Insets(20));

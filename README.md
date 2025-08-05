@@ -32,3 +32,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 java -version
 
 ./gradlew run
+
+export JAVA_HOME=/opt/java-17
+export PATH=$JAVA_HOME/bin:$PATH
+./gradlew run
