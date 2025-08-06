@@ -5,7 +5,7 @@
 }
 
 .button {
-    -fx-background-color: linear-gradient(to right, #43e97b, #38f9d7);
+    -fx-background-color: linear-gradient(to right, #43e97b 0%, #38f9d7 100%);
     -fx-text-fill: white;
     -fx-font-size: 16px;
     -fx-font-weight: 600;
@@ -18,7 +18,7 @@
 }
 
 .button:hover {
-    -fx-background-color: linear-gradient(to right, #38f9d7, #43e97b);
+    -fx-background-color: linear-gradient(to right, #38f9d7 0%, #43e97b 100%);
     -fx-effect: dropshadow(gaussian, rgba(67,233,123,0.25), 16, 0.3, 0, 4);
 }
 

@@ -400,7 +400,7 @@ public class GoalsView {
 
         // Add Task Button
         Button addTaskButton = new Button("+");
-        addTaskButton.setStyle("-fx-background-color: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%); -fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold; -fx-background-radius: 12px;");
+        addTaskButton.setStyle("-fx-background-color: linear-gradient(to right, #43e97b 0%, #38f9d7 100%); -fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold; -fx-background-radius: 12px;");
         addTaskButton.setMaxWidth(Double.MAX_VALUE);
         addTaskButton.setPrefHeight(60);
         addTaskButton.setOnAction(e -> {

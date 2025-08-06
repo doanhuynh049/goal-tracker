@@ -20,6 +20,9 @@ public class MainView extends Application {
     private GoalService service = new GoalService();
     private Stage primaryStage;
     private GoalsView goalsView;
+    private boolean isDarkTheme = false; // Theme state
+    private VBox mainContent; // Reference to main content for theme switching
+    private HBox header; // Reference to header for theme switching
 
     public static void main(String[] args) {
         launch(args);
@@ -44,22 +47,96 @@ public class MainView extends Application {
             }
         }, 8, 0);
 
+        // Create the main layout with BorderPane for header
+        BorderPane mainLayout = new BorderPane();
+        
+        // Create and add modern header
+        header = createModernHeader();
+        mainLayout.setTop(header);
+
+        // Create the main content (existing layout)
+        mainContent = createMainContent();
+        mainLayout.setCenter(mainContent);
+
+        Scene mainScene = new Scene(mainLayout, 900, 650);
+        primaryStage.setTitle("Goal & Task Manager");
+        primaryStage.setScene(mainScene);
+        primaryStage.show();
+    }
+
+    // Create modern header with branding and navigation
+    private HBox createModernHeader() {
+        HBox header = new HBox(15);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(12, 20, 12, 20));
+        header.setStyle(getHeaderStyle());
+
+        // Logo/Icon (using 🎯 emoji as fallback if no logo file exists)
+        ImageView logo = new ImageView();
+        try {
+            Image logoImage = new Image(getClass().getResourceAsStream("/icons/create.png"));
+            logo.setImage(logoImage);
+            logo.setFitHeight(32);
+            logo.setFitWidth(32);
+        } catch (Exception e) {
+            // Fallback to text icon
+            Label logoLabel = new Label("🎯");
+            logoLabel.setStyle("-fx-font-size: 24px;");
+            header.getChildren().add(logoLabel);
+            logo = null;
+        }
+
+        if (logo != null) {
+            header.getChildren().add(logo);
+        }
+
+        // App Title
+        Label appTitle = new Label("Goal & Task Manager");
+        appTitle.setStyle(getTitleStyle());
+        header.getChildren().add(appTitle);
+
+        // Spacer to push items to the right
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        header.getChildren().add(spacer);
+
+        // Theme Toggle Button
+        Button themeToggle = new Button(isDarkTheme ? "☀️" : "🌙");
+        themeToggle.setStyle(getHeaderButtonStyle());
+        themeToggle.setTooltip(new Tooltip(isDarkTheme ? "Switch to Light Theme" : "Switch to Dark Theme"));
+        themeToggle.setOnAction(e -> toggleTheme(themeToggle));
+
+        // Settings Button
+        Button settingsBtn = new Button("⚙️");
+        settingsBtn.setStyle(getHeaderButtonStyle());
+        settingsBtn.setTooltip(new Tooltip("Settings"));
+        settingsBtn.setOnAction(e -> showSettingsDialog());
+
+        // Profile/User Button
+        Button profileBtn = new Button("👤");
+        profileBtn.setStyle(getHeaderButtonStyle());
+        profileBtn.setTooltip(new Tooltip("User Profile"));
+        profileBtn.setOnAction(e -> showProfileDialog());
+
+        header.getChildren().addAll(themeToggle, settingsBtn, profileBtn);
+        return header;
+    }
+
+    // Create main content (existing layout without title)
+    private VBox createMainContent() {
         VBox layout = new VBox();
         layout.setPadding(new Insets(40));
         layout.setAlignment(Pos.CENTER);
         layout.setSpacing(30);
-        layout.setStyle("-fx-background-color: linear-gradient(to bottom right, #e0eafc, #cfdef3);");
-
-        Label titleLabel = new Label("Goal and Task Management");
-        titleLabel.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        updateLayoutTheme(layout);
 
         Button createGoalButton = createButton("Create Goal", "create.png");
         Button addTaskButton = createButton("Add Task to Goal", "add.png");
         Button viewGoalsButton = createButton("View Goals and Progress", "view.png");
         Button exitButton = createButton("Exit", "exit.png");
         Button sendNotificationButton = createButton("Send Notification Now", "mark.png");
-        Button viewStatisticsButton = createButton("View Statistics", "stats.png");
-        Button sendStatisticsButton = createButton("Send Statistics Email", "email.png");
+        Button viewStatisticsButton = createButton("View Statistics", "view.png");
+        Button sendStatisticsButton = createButton("Send Statistics Email", "mark.png");
 
         // Tooltips
         createGoalButton.setTooltip(new Tooltip("Create a new goal"));
@@ -101,24 +178,89 @@ public class MainView extends Application {
             }
         });
 
-        VBox cardContent = new VBox(25);
-        cardContent.setAlignment(Pos.CENTER);
-        cardContent.getChildren().addAll(titleLabel, buttonContainer);
-
-        StackPane cardPane = new StackPane(cardContent);
+        StackPane cardPane = new StackPane(buttonContainer);
         cardPane.setPadding(new Insets(40, 60, 40, 60));
-        cardPane.setStyle(
-            "-fx-background-color: white;" +
-            "-fx-background-radius: 18px;" +
-            "-fx-effect: dropshadow(gaussian, rgba(44,62,80,0.12), 24, 0.2, 0, 8);"
-        );
+        cardPane.setStyle(getCardStyle());
 
         layout.getChildren().add(cardPane);
+        return layout;
+    }
 
-        Scene mainScene = new Scene(layout, 900, 600);
-        primaryStage.setTitle("Goal and Task Management");
-        primaryStage.setScene(mainScene);
-        primaryStage.show();
+    // Theme management methods
+    private String getHeaderStyle() {
+        return isDarkTheme ? 
+            "-fx-background-color: #34495e; -fx-border-color: #2c3e50; -fx-border-width: 0 0 1 0;" :
+            "-fx-background-color: #2c3e50; -fx-border-color: #34495e; -fx-border-width: 0 0 1 0;";
+    }
+
+    private String getTitleStyle() {
+        return isDarkTheme ?
+            "-fx-font-size: 22px; -fx-text-fill: #ecf0f1; -fx-font-weight: bold;" :
+            "-fx-font-size: 22px; -fx-text-fill: white; -fx-font-weight: bold;";
+    }
+
+    private String getHeaderButtonStyle() {
+        return isDarkTheme ?
+            "-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-font-size: 16px; -fx-cursor: hand; -fx-background-radius: 4px;" :
+            "-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 16px; -fx-cursor: hand; -fx-background-radius: 4px;";
+    }
+
+    private String getCardStyle() {
+        return isDarkTheme ?
+            "-fx-background-color: #34495e; -fx-background-radius: 18px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 24, 0.2, 0, 8);" :
+            "-fx-background-color: white; -fx-background-radius: 18px; -fx-effect: dropshadow(gaussian, rgba(44,62,80,0.12), 24, 0.2, 0, 8);";
+    }
+
+    private void updateLayoutTheme(VBox layout) {
+        String backgroundStyle = isDarkTheme ?
+            "-fx-background-color: linear-gradient(to bottom right, #2c3e50, #34495e);" :
+            "-fx-background-color: linear-gradient(to bottom right, #e0eafc, #cfdef3);";
+        layout.setStyle(backgroundStyle);
+    }
+
+    private void toggleTheme(Button themeButton) {
+        isDarkTheme = !isDarkTheme;
+        themeButton.setText(isDarkTheme ? "☀️" : "🌙");
+        themeButton.getTooltip().setText(isDarkTheme ? "Switch to Light Theme" : "Switch to Dark Theme");
+        
+        // Update header style
+        header.setStyle(getHeaderStyle());
+        
+        // Update header button styles
+        header.getChildren().forEach(node -> {
+            if (node instanceof Button btn && !btn.getText().equals("🎯")) {
+                btn.setStyle(getHeaderButtonStyle());
+            }
+            if (node instanceof Label label && label.getText().equals("Goal & Task Manager")) {
+                label.setStyle(getTitleStyle());
+            }
+        });
+        
+        // Update main content theme
+        updateLayoutTheme(mainContent);
+        
+        // Update card style
+        mainContent.getChildren().forEach(node -> {
+            if (node instanceof StackPane stackPane) {
+                stackPane.setStyle(getCardStyle());
+            }
+        });
+    }
+
+    private void showSettingsDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Settings");
+        alert.setHeaderText("Application Settings");
+        alert.setContentText("Settings feature coming soon!\n\nCurrent Features:\n• Theme Toggle\n• Email Notifications\n• Statistics Dashboard");
+        alert.showAndWait();
+    }
+
+    private void showProfileDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("User Profile");
+        alert.setHeaderText("Profile Information");
+        alert.setContentText("Profile management coming soon!\n\nCurrent User:\n• Email: quocthien049@gmail.com\n• Theme: " + (isDarkTheme ? "Dark" : "Light"));
+        alert.showAndWait();
     }
 
     // Button factory with consistent styling
