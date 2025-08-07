@@ -11,6 +11,7 @@ import service.GoalService;
 import util.DailyScheduler;
 import util.MailService;
 import util.AppLogger;
+import model.ViewType;
 
 import java.io.File;
 import javafx.embed.swing.SwingFXUtils;
@@ -24,7 +25,61 @@ public class MainView extends Application {
     private VBox mainContent; // Reference to main content for theme switching
     private HBox header; // Reference to header for theme switching
     private VBox sidebar; // Reference to sidebar for theme switching
-    private String currentView = "dashboard"; // Track current active view
+    private ViewType currentView = ViewType.DASHBOARD; // Track current active view
+
+    /**
+     * Enum representing different view types in the Goal & Task Manager application.
+     * This provides type safety and extensibility for navigation between different sections.
+     */
+    public enum ViewType {
+        DASHBOARD("dashboard", "🏠", "Dashboard"),
+        GOALS("goals", "🎯", "Goals"),
+        TASKS("tasks", "📝", "Tasks"),
+        STATISTICS("statistics", "📊", "Statistics"),
+        SETTINGS("settings", "⚙️", "Settings"),
+        REPORTS("reports", "📑", "Reports");
+
+        private final String id;
+        private final String icon;
+        private final String displayName;
+
+        ViewType(String id, String icon, String displayName) {
+            this.id = id;
+            this.icon = icon;
+            this.displayName = displayName;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getIcon() {
+            return icon;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        /**
+         * Get ViewType from string ID for backward compatibility
+         */
+        public static ViewType fromId(String id) {
+            for (ViewType type : values()) {
+                if (type.id.equals(id)) {
+                    return type;
+                }
+            }
+            return DASHBOARD; // Default fallback
+        }
+
+        /**
+         * Check if this view type matches the given string ID
+         */
+        public boolean matches(String id) {
+            return this.id.equals(id);
+        }
+    }
 
     public static void main(String[] args) {
         launch(args);
@@ -142,11 +197,11 @@ public class MainView extends Application {
         sidebarBrand.setPadding(new Insets(0, 0, 20, 0));
 
         // Navigation buttons
-        Button dashboardBtn = createSidebarButton("🏠", "Dashboard", "dashboard");
-        Button goalsBtn = createSidebarButton("🎯", "Goals", "goals");
-        Button tasksBtn = createSidebarButton("📝", "Tasks", "tasks");
-        Button statsBtn = createSidebarButton("📊", "Statistics", "statistics");
-        Button settingsBtn = createSidebarButton("⚙️", "Settings", "settings");
+        Button dashboardBtn = createSidebarButton("🏠", "Dashboard", ViewType.DASHBOARD);
+        Button goalsBtn = createSidebarButton("🎯", "Goals", ViewType.GOALS);
+        Button tasksBtn = createSidebarButton("📝", "Tasks", ViewType.TASKS);
+        Button statsBtn = createSidebarButton("📊", "Statistics", ViewType.STATISTICS);
+        Button settingsBtn = createSidebarButton("⚙️", "Settings", ViewType.SETTINGS);
 
         // Set initial active state
         updateSidebarButtonState(dashboardBtn, true);
@@ -167,7 +222,7 @@ public class MainView extends Application {
     }
 
     // Create sidebar navigation button
-    private Button createSidebarButton(String icon, String text, String viewName) {
+    private Button createSidebarButton(String icon, String text, ViewType viewType) {
         Button button = new Button(icon + "  " + text);
         button.setMaxWidth(Double.MAX_VALUE);
         button.setAlignment(Pos.CENTER_LEFT);
@@ -176,43 +231,60 @@ public class MainView extends Application {
         // Set actions for each button
         button.setOnAction(e -> {
             // Update current view and button states
-            currentView = viewName;
+            currentView = viewType;
             updateAllSidebarButtons();
             updateSidebarButtonState(button, true);
             
             // Handle navigation based on view
-            switch (viewName) {
-                case "dashboard":
-                    showDashboard();
-                    break;
-                case "goals":
-                    viewGoals();
-                    break;
-                case "tasks":
-                    showTasksView();
-                    break;
-                case "statistics":
-                    viewStatistics();
-                    break;
-                case "settings":
-                    showSettingsDialog();
-                    break;
-            }
+            navigateToView(viewType);
         });
 
         // Hover effects
         button.setOnMouseEntered(e -> {
-            if (!currentView.equals(viewName)) {
+            if (currentView != viewType) {
                 button.setStyle(getSidebarButtonHoverStyle());
             }
         });
         button.setOnMouseExited(e -> {
-            if (!currentView.equals(viewName)) {
+            if (currentView != viewType) {
                 button.setStyle(getSidebarButtonStyle(false));
             }
         });
 
         return button;
+    }
+
+    // Centralized navigation handler
+    private void navigateToView(ViewType viewType) {
+        switch (viewType) {
+            case DASHBOARD:
+                showDashboard();
+                break;
+            case GOALS:
+                viewGoals();
+                break;
+            case TASKS:
+                showTasksView();
+                break;
+            case STATISTICS:
+                viewStatistics();
+                break;
+            case SETTINGS:
+                showSettingsDialog();
+                break;
+            case REPORTS:
+                // Future implementation
+                showReportsView();
+                break;
+            default:
+                showDashboard();
+                break;
+        }
+    }
+
+    // Placeholder for future reports view
+    private void showReportsView() {
+        showInfoDialog("Reports", "Reports feature coming soon!");
     }
 
     // Update all sidebar buttons to inactive state
