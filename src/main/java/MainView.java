@@ -23,6 +23,8 @@ public class MainView extends Application {
     private boolean isDarkTheme = false; // Theme state
     private VBox mainContent; // Reference to main content for theme switching
     private HBox header; // Reference to header for theme switching
+    private VBox sidebar; // Reference to sidebar for theme switching
+    private String currentView = "dashboard"; // Track current active view
 
     public static void main(String[] args) {
         launch(args);
@@ -47,18 +49,22 @@ public class MainView extends Application {
             }
         }, 8, 0);
 
-        // Create the main layout with BorderPane for header
+        // Create the main layout with BorderPane for header and sidebar
         BorderPane mainLayout = new BorderPane();
         
         // Create and add modern header
         header = createModernHeader();
         mainLayout.setTop(header);
 
+        // Create and add sidebar
+        sidebar = createSidebar();
+        mainLayout.setLeft(sidebar);
+
         // Create the main content (existing layout)
         mainContent = createMainContent();
         mainLayout.setCenter(mainContent);
 
-        Scene mainScene = new Scene(mainLayout, 900, 650);
+        Scene mainScene = new Scene(mainLayout, 1100, 650); // Increased width for sidebar
         primaryStage.setTitle("Goal & Task Manager");
         primaryStage.setScene(mainScene);
         primaryStage.show();
@@ -120,6 +126,119 @@ public class MainView extends Application {
 
         header.getChildren().addAll(themeToggle, settingsBtn, profileBtn);
         return header;
+    }
+
+    // Create modern sidebar navigation panel
+    private VBox createSidebar() {
+        VBox sidebar = new VBox(15);
+        sidebar.setPadding(new Insets(20));
+        sidebar.setStyle(getSidebarStyle());
+        sidebar.setPrefWidth(180);
+        sidebar.setMinWidth(180);
+
+        // App Logo/Branding section
+        Label sidebarBrand = new Label("Goal Tracker");
+        sidebarBrand.setStyle(getSidebarBrandStyle());
+        sidebarBrand.setPadding(new Insets(0, 0, 20, 0));
+
+        // Navigation buttons
+        Button dashboardBtn = createSidebarButton("🏠", "Dashboard", "dashboard");
+        Button goalsBtn = createSidebarButton("🎯", "Goals", "goals");
+        Button tasksBtn = createSidebarButton("📝", "Tasks", "tasks");
+        Button statsBtn = createSidebarButton("📊", "Statistics", "statistics");
+        Button settingsBtn = createSidebarButton("⚙️", "Settings", "settings");
+
+        // Set initial active state
+        updateSidebarButtonState(dashboardBtn, true);
+
+        // Add all elements to sidebar
+        sidebar.getChildren().addAll(
+            sidebarBrand,
+            new Separator(),
+            dashboardBtn,
+            goalsBtn,
+            tasksBtn,
+            statsBtn,
+            new Separator(),
+            settingsBtn
+        );
+
+        return sidebar;
+    }
+
+    // Create sidebar navigation button
+    private Button createSidebarButton(String icon, String text, String viewName) {
+        Button button = new Button(icon + "  " + text);
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setStyle(getSidebarButtonStyle(false));
+
+        // Set actions for each button
+        button.setOnAction(e -> {
+            // Update current view and button states
+            currentView = viewName;
+            updateAllSidebarButtons();
+            updateSidebarButtonState(button, true);
+            
+            // Handle navigation based on view
+            switch (viewName) {
+                case "dashboard":
+                    showDashboard();
+                    break;
+                case "goals":
+                    viewGoals();
+                    break;
+                case "tasks":
+                    showTasksView();
+                    break;
+                case "statistics":
+                    viewStatistics();
+                    break;
+                case "settings":
+                    showSettingsDialog();
+                    break;
+            }
+        });
+
+        // Hover effects
+        button.setOnMouseEntered(e -> {
+            if (!currentView.equals(viewName)) {
+                button.setStyle(getSidebarButtonHoverStyle());
+            }
+        });
+        button.setOnMouseExited(e -> {
+            if (!currentView.equals(viewName)) {
+                button.setStyle(getSidebarButtonStyle(false));
+            }
+        });
+
+        return button;
+    }
+
+    // Update all sidebar buttons to inactive state
+    private void updateAllSidebarButtons() {
+        sidebar.getChildren().forEach(node -> {
+            if (node instanceof Button btn) {
+                updateSidebarButtonState(btn, false);
+            }
+        });
+    }
+
+    // Update sidebar button state (active/inactive)
+    private void updateSidebarButtonState(Button button, boolean isActive) {
+        button.setStyle(getSidebarButtonStyle(isActive));
+    }
+
+    // Show dashboard (main menu)
+    private void showDashboard() {
+        // Return to main dashboard content
+        BorderPane parent = (BorderPane) mainContent.getParent();
+        parent.setCenter(createMainContent());
+    }
+
+    // Show tasks view (you can implement a dedicated tasks view later)
+    private void showTasksView() {
+        addTask(); // For now, redirect to add task functionality
     }
 
     // Create main content (existing layout without title)
@@ -218,6 +337,37 @@ public class MainView extends Application {
         layout.setStyle(backgroundStyle);
     }
 
+    // Sidebar styling methods
+    private String getSidebarStyle() {
+        return isDarkTheme ?
+            "-fx-background-color: #2c3e50; -fx-border-color: #34495e; -fx-border-width: 0 1 0 0;" :
+            "-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-width: 0 1 0 0;";
+    }
+
+    private String getSidebarBrandStyle() {
+        return isDarkTheme ?
+            "-fx-font-size: 16px; -fx-text-fill: #ecf0f1; -fx-font-weight: bold;" :
+            "-fx-font-size: 16px; -fx-text-fill: #2c3e50; -fx-font-weight: bold;";
+    }
+
+    private String getSidebarButtonStyle(boolean isActive) {
+        if (isActive) {
+            return isDarkTheme ?
+                "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;" :
+                "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;";
+        } else {
+            return isDarkTheme ?
+                "-fx-background-color: transparent; -fx-text-fill: #bdc3c7; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;" :
+                "-fx-background-color: transparent; -fx-text-fill: #7f8c8d; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;";
+        }
+    }
+
+    private String getSidebarButtonHoverStyle() {
+        return isDarkTheme ?
+            "-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;" :
+            "-fx-background-color: #d5dbdb; -fx-text-fill: #2c3e50; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;";
+    }
+
     private void toggleTheme(Button themeButton) {
         isDarkTheme = !isDarkTheme;
         themeButton.setText(isDarkTheme ? "☀️" : "🌙");
@@ -233,6 +383,31 @@ public class MainView extends Application {
             }
             if (node instanceof Label label && label.getText().equals("Goal & Task Manager")) {
                 label.setStyle(getTitleStyle());
+            }
+        });
+        
+        // Update sidebar style
+        sidebar.setStyle(getSidebarStyle());
+        
+        // Update sidebar buttons and brand
+        sidebar.getChildren().forEach(node -> {
+            if (node instanceof Button btn) {
+                String buttonText = btn.getText();
+                boolean isActive = false;
+                
+                // Check if this button represents the current view
+                if ((buttonText.contains("Dashboard") && currentView.equals("dashboard")) ||
+                    (buttonText.contains("Goals") && currentView.equals("goals")) ||
+                    (buttonText.contains("Tasks") && currentView.equals("tasks")) ||
+                    (buttonText.contains("Statistics") && currentView.equals("statistics")) ||
+                    (buttonText.contains("Settings") && currentView.equals("settings"))) {
+                    isActive = true;
+                }
+                
+                btn.setStyle(getSidebarButtonStyle(isActive));
+            }
+            if (node instanceof Label label && label.getText().equals("Goal Tracker")) {
+                label.setStyle(getSidebarBrandStyle());
             }
         });
         
