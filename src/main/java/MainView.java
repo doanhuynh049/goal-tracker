@@ -303,9 +303,10 @@ public class MainView extends Application {
 
     // Show dashboard (main menu)
     private void showDashboard() {
-        // Return to main dashboard content
+        // Create new dashboard view and set it as center content
+        DashboardRightView dashboardView = new DashboardRightView(service, this, isDarkTheme);
         BorderPane parent = (BorderPane) mainContent.getParent();
-        parent.setCenter(createMainContent());
+        parent.setCenter(dashboardView.createEnhancedDashboard());
     }
 
     // Show tasks view (you can implement a dedicated tasks view later)
@@ -467,12 +468,12 @@ public class MainView extends Application {
                 String buttonText = btn.getText();
                 boolean isActive = false;
                 
-                // Check if this button represents the current view
-                if ((buttonText.contains("Dashboard") && currentView.equals("dashboard")) ||
-                    (buttonText.contains("Goals") && currentView.equals("goals")) ||
-                    (buttonText.contains("Tasks") && currentView.equals("tasks")) ||
-                    (buttonText.contains("Statistics") && currentView.equals("statistics")) ||
-                    (buttonText.contains("Settings") && currentView.equals("settings"))) {
+                // Check if this button represents the current view - fix the comparison
+                if ((buttonText.contains("Dashboard") && currentView == ViewType.DASHBOARD) ||
+                    (buttonText.contains("Goals") && currentView == ViewType.GOALS) ||
+                    (buttonText.contains("Tasks") && currentView == ViewType.TASKS) ||
+                    (buttonText.contains("Statistics") && currentView == ViewType.STATISTICS) ||
+                    (buttonText.contains("Settings") && currentView == ViewType.SETTINGS)) {
                     isActive = true;
                 }
                 
@@ -564,17 +565,17 @@ public class MainView extends Application {
                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 6, 0.2, 0, 4);";
     }
 
-    private void createGoal() {
+    public void createGoal() {
         GoalEditView goalEditView = new GoalEditView(service);
         goalEditView.buildScreen(primaryStage);
     }
 
-    private void addTask() {
+    public void addTask() {
         AddTaskView addTaskView = new AddTaskView(service);
         addTaskView.buildScreen(primaryStage);
     }
 
-    private void viewGoals() {
+    public void viewGoals() {
         goalsView = new GoalsView(service);
         goalsView.buildScreen(primaryStage);
     }
@@ -600,7 +601,7 @@ public class MainView extends Application {
         return file;
     }
 
-    private void viewStatistics() {
+    public void viewStatistics() {
         StatisticsView statisticsView = new StatisticsView(service);
         statisticsView.buildScreen(primaryStage);
     }
