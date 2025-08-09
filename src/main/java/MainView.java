@@ -25,6 +25,7 @@ public class MainView extends Application {
     private VBox mainContent; // Reference to main content for theme switching
     private HBox header; // Reference to header for theme switching
     private VBox sidebar; // Reference to sidebar for theme switching
+    private BorderPane mainLayout; // Reference to main layout for switching center content
     private SidebarMenuView sidebarMenuView; // Sidebar menu handler
     private ViewType currentView = ViewType.DASHBOARD; // Track current active view
 
@@ -52,7 +53,7 @@ public class MainView extends Application {
         }, 8, 0);
 
         // Create the main layout with BorderPane for header and sidebar
-        BorderPane mainLayout = new BorderPane();
+        mainLayout = new BorderPane();
         
         // Create and add modern header
         header = createModernHeader();
@@ -154,8 +155,21 @@ public class MainView extends Application {
     public void showDashboard() {
         // Create new dashboard view and set it as center content
         DashboardRightView dashboardView = new DashboardRightView(service, this, isDarkTheme);
-        BorderPane parent = (BorderPane) mainContent.getParent();
-        parent.setCenter(dashboardView.createEnhancedDashboard());
+        mainLayout.setCenter(dashboardView.createEnhancedDashboard());
+    }
+
+    // Show goals view as right panel - make public so SidebarMenuView can access
+    public void showGoalsView() {
+        // Create new goals view and set it as center content
+        GoalsRightView goalsView = new GoalsRightView(service, this, isDarkTheme);
+        mainLayout.setCenter(goalsView.createGoalsView());
+    }
+
+    // Show statistics view as right panel - make public so SidebarMenuView can access
+    public void showStatisticsView() {
+        // Create new statistics view and set it as center content
+        StatisticsRightView statisticsView = new StatisticsRightView(service, this, isDarkTheme);
+        mainLayout.setCenter(statisticsView.createStatisticsView());
     }
 
     // Show tasks view - make public so SidebarMenuView can access
@@ -191,16 +205,16 @@ public class MainView extends Application {
         // Tooltips
         createGoalButton.setTooltip(new Tooltip("Create a new goal"));
         addTaskButton.setTooltip(new Tooltip("Add a task to an existing goal"));
-        viewGoalsButton.setTooltip(new Tooltip("View all goals and their progress"));
+        viewGoalsButton.setTooltip(new Tooltip("View all goals and their progress (also available in sidebar)"));
         exitButton.setTooltip(new Tooltip("Exit the application"));
         sendNotificationButton.setTooltip(new Tooltip("Send today's tasks notification email now"));
-        viewStatisticsButton.setTooltip(new Tooltip("View statistics dashboard"));
+        viewStatisticsButton.setTooltip(new Tooltip("View statistics dashboard (also available in sidebar)"));
         sendStatisticsButton.setTooltip(new Tooltip("Send statistics dashboard via email"));
 
         // Actions
         createGoalButton.setOnAction(e -> createGoal());
         addTaskButton.setOnAction(e -> addTask());
-        viewGoalsButton.setOnAction(e -> viewGoals());
+        viewGoalsButton.setOnAction(e -> showGoalsView()); // Updated to use new integrated view
         exitButton.setOnAction(e -> primaryStage.close());
         sendNotificationButton.setOnAction(e -> {
             try {
@@ -210,7 +224,7 @@ public class MainView extends Application {
                 showInfoDialog("Error", "Failed to send notification: " + ex.getMessage());
             }
         });
-        viewStatisticsButton.setOnAction(e -> viewStatistics());
+        viewStatisticsButton.setOnAction(e -> showStatisticsView()); // Updated to use new integrated view
         sendStatisticsButton.setOnAction(e -> sendStatisticsDashboardEmail());
 
         VBox buttonContainer = new VBox(15);
@@ -376,9 +390,22 @@ public class MainView extends Application {
         addTaskView.buildScreen(primaryStage);
     }
 
+    /**
+     * @deprecated Use showGoalsView() instead for integrated panel view
+     */
+    @Deprecated
     public void viewGoals() {
         goalsView = new GoalsView(service);
         goalsView.buildScreen(primaryStage);
+    }
+
+    /**
+     * @deprecated Use showStatisticsView() instead for integrated panel view
+     */
+    @Deprecated
+    public void viewStatistics() {
+        StatisticsView statisticsView = new StatisticsView(service);
+        statisticsView.buildScreen(primaryStage);
     }
 
     private void sendStatisticsDashboardEmail() {
@@ -400,11 +427,6 @@ public class MainView extends Application {
         File file = File.createTempFile("statistics_dashboard", ".png");
         javax.imageio.ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
         return file;
-    }
-
-    public void viewStatistics() {
-        StatisticsView statisticsView = new StatisticsView(service);
-        statisticsView.buildScreen(primaryStage);
     }
 
     private void showInfoDialog(String title, String content) {

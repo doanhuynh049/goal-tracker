@@ -112,13 +112,13 @@ public class SidebarMenuView {
                 mainView.showDashboard();
                 break;
             case GOALS:
-                mainView.viewGoals();
+                mainView.showGoalsView();
                 break;
             case TASKS:
                 mainView.showTasksView();
                 break;
             case STATISTICS:
-                mainView.viewStatistics();
+                mainView.showStatisticsView();
                 break;
             case SETTINGS:
                 mainView.showSettingsDialog();

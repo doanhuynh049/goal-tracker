@@ -121,6 +121,10 @@ public class Task {
     public java.time.LocalDate getCompletedDate() {
         return completedDate;
     }
+    
+    public void setCompletedDate(java.time.LocalDate completedDate) {
+        this.completedDate = completedDate;
+    }
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
