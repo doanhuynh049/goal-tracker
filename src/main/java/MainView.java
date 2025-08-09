@@ -25,61 +25,8 @@ public class MainView extends Application {
     private VBox mainContent; // Reference to main content for theme switching
     private HBox header; // Reference to header for theme switching
     private VBox sidebar; // Reference to sidebar for theme switching
+    private SidebarMenuView sidebarMenuView; // Sidebar menu handler
     private ViewType currentView = ViewType.DASHBOARD; // Track current active view
-
-    /**
-     * Enum representing different view types in the Goal & Task Manager application.
-     * This provides type safety and extensibility for navigation between different sections.
-     */
-    public enum ViewType {
-        DASHBOARD("dashboard", "🏠", "Dashboard"),
-        GOALS("goals", "🎯", "Goals"),
-        TASKS("tasks", "📝", "Tasks"),
-        STATISTICS("statistics", "📊", "Statistics"),
-        SETTINGS("settings", "⚙️", "Settings"),
-        REPORTS("reports", "📑", "Reports");
-
-        private final String id;
-        private final String icon;
-        private final String displayName;
-
-        ViewType(String id, String icon, String displayName) {
-            this.id = id;
-            this.icon = icon;
-            this.displayName = displayName;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getIcon() {
-            return icon;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        /**
-         * Get ViewType from string ID for backward compatibility
-         */
-        public static ViewType fromId(String id) {
-            for (ViewType type : values()) {
-                if (type.id.equals(id)) {
-                    return type;
-                }
-            }
-            return DASHBOARD; // Default fallback
-        }
-
-        /**
-         * Check if this view type matches the given string ID
-         */
-        public boolean matches(String id) {
-            return this.id.equals(id);
-        }
-    }
 
     public static void main(String[] args) {
         launch(args);
@@ -112,7 +59,8 @@ public class MainView extends Application {
         mainLayout.setTop(header);
 
         // Create and add sidebar
-        sidebar = createSidebar();
+        sidebarMenuView = new SidebarMenuView(this, isDarkTheme);
+        sidebar = sidebarMenuView.createSidebar();
         mainLayout.setLeft(sidebar);
 
         // Create the main content (existing layout)
@@ -183,135 +131,45 @@ public class MainView extends Application {
         return header;
     }
 
-    // Create modern sidebar navigation panel
-    private VBox createSidebar() {
-        VBox sidebar = new VBox(15);
-        sidebar.setPadding(new Insets(20));
-        sidebar.setStyle(getSidebarStyle());
-        sidebar.setPrefWidth(180);
-        sidebar.setMinWidth(180);
-
-        // App Logo/Branding section
-        Label sidebarBrand = new Label("Goal Tracker");
-        sidebarBrand.setStyle(getSidebarBrandStyle());
-        sidebarBrand.setPadding(new Insets(0, 0, 20, 0));
-
-        // Navigation buttons
-        Button dashboardBtn = createSidebarButton("🏠", "Dashboard", ViewType.DASHBOARD);
-        Button goalsBtn = createSidebarButton("🎯", "Goals", ViewType.GOALS);
-        Button tasksBtn = createSidebarButton("📝", "Tasks", ViewType.TASKS);
-        Button statsBtn = createSidebarButton("📊", "Statistics", ViewType.STATISTICS);
-        Button settingsBtn = createSidebarButton("⚙️", "Settings", ViewType.SETTINGS);
-
-        // Set initial active state
-        updateSidebarButtonState(dashboardBtn, true);
-
-        // Add all elements to sidebar
-        sidebar.getChildren().addAll(
-            sidebarBrand,
-            new Separator(),
-            dashboardBtn,
-            goalsBtn,
-            tasksBtn,
-            statsBtn,
-            new Separator(),
-            settingsBtn
-        );
-
-        return sidebar;
-    }
-
-    // Create sidebar navigation button
-    private Button createSidebarButton(String icon, String text, ViewType viewType) {
-        Button button = new Button(icon + "  " + text);
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setAlignment(Pos.CENTER_LEFT);
-        button.setStyle(getSidebarButtonStyle(false));
-
-        // Set actions for each button
-        button.setOnAction(e -> {
-            // Update current view and button states
-            currentView = viewType;
-            updateAllSidebarButtons();
-            updateSidebarButtonState(button, true);
-            
-            // Handle navigation based on view
-            navigateToView(viewType);
-        });
-
-        // Hover effects
-        button.setOnMouseEntered(e -> {
-            if (currentView != viewType) {
-                button.setStyle(getSidebarButtonHoverStyle());
-            }
-        });
-        button.setOnMouseExited(e -> {
-            if (currentView != viewType) {
-                button.setStyle(getSidebarButtonStyle(false));
-            }
-        });
-
-        return button;
-    }
-
-    // Centralized navigation handler
-    private void navigateToView(ViewType viewType) {
-        switch (viewType) {
-            case DASHBOARD:
-                showDashboard();
-                break;
-            case GOALS:
-                viewGoals();
-                break;
-            case TASKS:
-                showTasksView();
-                break;
-            case STATISTICS:
-                viewStatistics();
-                break;
-            case SETTINGS:
-                showSettingsDialog();
-                break;
-            case REPORTS:
-                // Future implementation
-                showReportsView();
-                break;
-            default:
-                showDashboard();
-                break;
-        }
-    }
-
     // Placeholder for future reports view
-    private void showReportsView() {
+    public void showReportsView() {
         showInfoDialog("Reports", "Reports feature coming soon!");
     }
 
-    // Update all sidebar buttons to inactive state
-    private void updateAllSidebarButtons() {
-        sidebar.getChildren().forEach(node -> {
-            if (node instanceof Button btn) {
-                updateSidebarButtonState(btn, false);
-            }
-        });
+    // Getter and setter for currentView (needed by SidebarMenuView)
+    public ViewType getCurrentView() {
+        return currentView;
     }
 
-    // Update sidebar button state (active/inactive)
-    private void updateSidebarButtonState(Button button, boolean isActive) {
-        button.setStyle(getSidebarButtonStyle(isActive));
+    public void setCurrentView(ViewType viewType) {
+        this.currentView = viewType;
+    }
+    
+    // Getter for isDarkTheme (needed by SidebarMenuView)
+    public boolean isDarkTheme() {
+        return isDarkTheme;
     }
 
-    // Show dashboard (main menu)
-    private void showDashboard() {
+    // Show dashboard (main menu) - make public so SidebarMenuView can access
+    public void showDashboard() {
         // Create new dashboard view and set it as center content
         DashboardRightView dashboardView = new DashboardRightView(service, this, isDarkTheme);
         BorderPane parent = (BorderPane) mainContent.getParent();
         parent.setCenter(dashboardView.createEnhancedDashboard());
     }
 
-    // Show tasks view (you can implement a dedicated tasks view later)
-    private void showTasksView() {
+    // Show tasks view - make public so SidebarMenuView can access
+    public void showTasksView() {
         addTask(); // For now, redirect to add task functionality
+    }
+
+    // Make settings dialog public so SidebarMenuView can access
+    public void showSettingsDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Settings");
+        alert.setHeaderText("Application Settings");
+        alert.setContentText("Settings feature coming soon!\n\nCurrent Features:\n• Theme Toggle\n• Email Notifications\n• Statistics Dashboard");
+        alert.showAndWait();
     }
 
     // Create main content (existing layout without title)
@@ -410,37 +268,6 @@ public class MainView extends Application {
         layout.setStyle(backgroundStyle);
     }
 
-    // Sidebar styling methods
-    private String getSidebarStyle() {
-        return isDarkTheme ?
-            "-fx-background-color: #2c3e50; -fx-border-color: #34495e; -fx-border-width: 0 1 0 0;" :
-            "-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-width: 0 1 0 0;";
-    }
-
-    private String getSidebarBrandStyle() {
-        return isDarkTheme ?
-            "-fx-font-size: 16px; -fx-text-fill: #ecf0f1; -fx-font-weight: bold;" :
-            "-fx-font-size: 16px; -fx-text-fill: #2c3e50; -fx-font-weight: bold;";
-    }
-
-    private String getSidebarButtonStyle(boolean isActive) {
-        if (isActive) {
-            return isDarkTheme ?
-                "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;" :
-                "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;";
-        } else {
-            return isDarkTheme ?
-                "-fx-background-color: transparent; -fx-text-fill: #bdc3c7; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;" :
-                "-fx-background-color: transparent; -fx-text-fill: #7f8c8d; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;";
-        }
-    }
-
-    private String getSidebarButtonHoverStyle() {
-        return isDarkTheme ?
-            "-fx-background-color: #34495e; -fx-text-fill: #ecf0f1; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;" :
-            "-fx-background-color: #d5dbdb; -fx-text-fill: #2c3e50; -fx-font-size: 14px; -fx-padding: 12px; -fx-background-radius: 6px; -fx-cursor: hand;";
-    }
-
     private void toggleTheme(Button themeButton) {
         isDarkTheme = !isDarkTheme;
         themeButton.setText(isDarkTheme ? "☀️" : "🌙");
@@ -459,30 +286,10 @@ public class MainView extends Application {
             }
         });
         
-        // Update sidebar style
-        sidebar.setStyle(getSidebarStyle());
-        
-        // Update sidebar buttons and brand
-        sidebar.getChildren().forEach(node -> {
-            if (node instanceof Button btn) {
-                String buttonText = btn.getText();
-                boolean isActive = false;
-                
-                // Check if this button represents the current view - fix the comparison
-                if ((buttonText.contains("Dashboard") && currentView == ViewType.DASHBOARD) ||
-                    (buttonText.contains("Goals") && currentView == ViewType.GOALS) ||
-                    (buttonText.contains("Tasks") && currentView == ViewType.TASKS) ||
-                    (buttonText.contains("Statistics") && currentView == ViewType.STATISTICS) ||
-                    (buttonText.contains("Settings") && currentView == ViewType.SETTINGS)) {
-                    isActive = true;
-                }
-                
-                btn.setStyle(getSidebarButtonStyle(isActive));
-            }
-            if (node instanceof Label label && label.getText().equals("Goal Tracker")) {
-                label.setStyle(getSidebarBrandStyle());
-            }
-        });
+        // Update sidebar theme using SidebarMenuView
+        if (sidebarMenuView != null) {
+            sidebarMenuView.updateSidebarTheme(currentView);
+        }
         
         // Update main content theme
         updateLayoutTheme(mainContent);
@@ -495,13 +302,7 @@ public class MainView extends Application {
         });
     }
 
-    private void showSettingsDialog() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Settings");
-        alert.setHeaderText("Application Settings");
-        alert.setContentText("Settings feature coming soon!\n\nCurrent Features:\n• Theme Toggle\n• Email Notifications\n• Statistics Dashboard");
-        alert.showAndWait();
-    }
+
 
     private void showProfileDialog() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
