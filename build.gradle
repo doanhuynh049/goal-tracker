@@ -6,7 +6,7 @@ plugins {
 
 javafx {
     version = "21.0.1"
-    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.swing' ]
+    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.swing', 'javafx.web' ]
 }
 
 repositories {
@@ -19,6 +19,7 @@ dependencies {
     implementation 'org.openjfx:javafx-controls:21.0.1'
     implementation 'org.openjfx:javafx-fxml:21.0.1'
     implementation 'org.openjfx:javafx-swing:21.0.1'
+    implementation 'org.openjfx:javafx-web:21.0.1'
     testImplementation 'junit:junit:4.13.2'
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
 }

@@ -187,14 +187,9 @@ public class MainView extends Application {
 
     // Show calendar view - make public so SidebarMenuView can access
     public void showCalendarView() {
-        // TODO: Create CalendarRightView and set it as center content
-        // For now, show a placeholder
-        Label placeholder = new Label("📅 Calendar View\n\nComing Soon!\n\nThis will be a Google Calendar-like interface for scheduling tasks.");
-        placeholder.setStyle("-fx-font-size: 24px; -fx-text-fill: #7f8c8d; -fx-alignment: center;");
-        placeholder.setMaxWidth(Double.MAX_VALUE);
-        placeholder.setMaxHeight(Double.MAX_VALUE);
-        placeholder.setAlignment(javafx.geometry.Pos.CENTER);
-        mainLayout.setCenter(placeholder);
+        // Create CalendarRightView and set it as center content
+        CalendarRightView calendarRightView = new CalendarRightView(service, isDarkTheme);
+        mainLayout.setCenter(calendarRightView);
     }
 
     // Make settings dialog public so SidebarMenuView can access
