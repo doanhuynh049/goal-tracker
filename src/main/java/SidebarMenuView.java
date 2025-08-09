@@ -38,6 +38,7 @@ public class SidebarMenuView {
         Button goalsBtn = createSidebarButton("🎯", "Goals", ViewType.GOALS);
         Button tasksBtn = createSidebarButton("📝", "Tasks", ViewType.TASKS);
         Button taskMgmtBtn = createSidebarButton("🔧", "Add/Edit My Goals", ViewType.TASK_MANAGEMENT);
+        Button calendarBtn = createSidebarButton("📅", "Calendar", ViewType.CALENDAR);
         Button statsBtn = createSidebarButton("📊", "Statistics", ViewType.STATISTICS);
         Button settingsBtn = createSidebarButton("⚙️", "Settings", ViewType.SETTINGS);
 
@@ -52,6 +53,7 @@ public class SidebarMenuView {
             goalsBtn,
             tasksBtn,
             taskMgmtBtn,
+            calendarBtn,
             statsBtn,
             new Separator(),
             settingsBtn
@@ -122,6 +124,9 @@ public class SidebarMenuView {
             case TASK_MANAGEMENT:
                 mainView.showTaskManagementView();
                 break;
+            case CALENDAR:
+                mainView.showCalendarView();
+                break;
             case STATISTICS:
                 mainView.showStatisticsView();
                 break;
@@ -179,6 +184,7 @@ public class SidebarMenuView {
                     (buttonText.contains("Goals") && currentView == ViewType.GOALS) ||
                     (buttonText.contains("Tasks") && !buttonText.contains("Management") && currentView == ViewType.TASKS) ||
                     (buttonText.contains("Add/Edit My Goals") && currentView == ViewType.TASK_MANAGEMENT) ||
+                    (buttonText.contains("Calendar") && currentView == ViewType.CALENDAR) ||
                     (buttonText.contains("Statistics") && currentView == ViewType.STATISTICS) ||
                     (buttonText.contains("Settings") && currentView == ViewType.SETTINGS)) {
                     isActive = true;
