@@ -8,6 +8,7 @@ public enum ViewType {
     DASHBOARD("dashboard", "🏠", "Dashboard"),
     GOALS("goals", "🎯", "Goals"),
     TASKS("tasks", "📝", "Tasks"),
+    TASK_MANAGEMENT("add-edit-goals", "🔧", "Add/Edit My Goals"),
     STATISTICS("statistics", "📊", "Statistics"),
     SETTINGS("settings", "⚙️", "Settings"),
     REPORTS("reports", "📑", "Reports");

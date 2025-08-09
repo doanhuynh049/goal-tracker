@@ -177,6 +177,14 @@ public class MainView extends Application {
         addTask(); // For now, redirect to add task functionality
     }
 
+    // Show task management view - make public so SidebarMenuView can access
+    public void showTaskManagementView() {
+        // Create new task management view and set it as center content
+        AddEditMyGoals taskManagementView = new AddEditMyGoals(service);
+        taskManagementView.setDarkMode(isDarkTheme);
+        mainLayout.setCenter(taskManagementView);
+    }
+
     // Make settings dialog public so SidebarMenuView can access
     public void showSettingsDialog() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

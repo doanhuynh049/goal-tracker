@@ -499,7 +499,7 @@ public class DashboardRightView {
     }
     
     // Dashboard styling methods
-    private String getDashboardTitleStyle() {
+    public String getDashboardTitleStyle() {
         return isDarkTheme ?
             "-fx-font-size: 32px; -fx-text-fill: #ecf0f1; -fx-font-weight: bold; -fx-padding: 0 0 20 0;" :
             "-fx-font-size: 32px; -fx-text-fill: #2c3e50; -fx-font-weight: bold; -fx-padding: 0 0 20 0;";

@@ -37,6 +37,7 @@ public class SidebarMenuView {
         Button dashboardBtn = createSidebarButton("🏠", "Dashboard", ViewType.DASHBOARD);
         Button goalsBtn = createSidebarButton("🎯", "Goals", ViewType.GOALS);
         Button tasksBtn = createSidebarButton("📝", "Tasks", ViewType.TASKS);
+        Button taskMgmtBtn = createSidebarButton("🔧", "Add/Edit My Goals", ViewType.TASK_MANAGEMENT);
         Button statsBtn = createSidebarButton("📊", "Statistics", ViewType.STATISTICS);
         Button settingsBtn = createSidebarButton("⚙️", "Settings", ViewType.SETTINGS);
 
@@ -50,6 +51,7 @@ public class SidebarMenuView {
             dashboardBtn,
             goalsBtn,
             tasksBtn,
+            taskMgmtBtn,
             statsBtn,
             new Separator(),
             settingsBtn
@@ -117,6 +119,9 @@ public class SidebarMenuView {
             case TASKS:
                 mainView.showTasksView();
                 break;
+            case TASK_MANAGEMENT:
+                mainView.showTaskManagementView();
+                break;
             case STATISTICS:
                 mainView.showStatisticsView();
                 break;
@@ -172,7 +177,8 @@ public class SidebarMenuView {
                 // Check if this button represents the current view
                 if ((buttonText.contains("Dashboard") && currentView == ViewType.DASHBOARD) ||
                     (buttonText.contains("Goals") && currentView == ViewType.GOALS) ||
-                    (buttonText.contains("Tasks") && currentView == ViewType.TASKS) ||
+                    (buttonText.contains("Tasks") && !buttonText.contains("Management") && currentView == ViewType.TASKS) ||
+                    (buttonText.contains("Add/Edit My Goals") && currentView == ViewType.TASK_MANAGEMENT) ||
                     (buttonText.contains("Statistics") && currentView == ViewType.STATISTICS) ||
                     (buttonText.contains("Settings") && currentView == ViewType.SETTINGS)) {
                     isActive = true;
